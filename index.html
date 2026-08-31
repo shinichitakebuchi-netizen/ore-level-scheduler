@@ -531,6 +531,7 @@ let clip = null;           // コピーしたタスク {title,category,xp}
    ========================================================= */
 const SFX = (()=>{
   let ctx=null, master=null, conv=null, revReturn=null, muted=false;
+  const bufs={};   // 読み込んだ効果音ファイル（あれば合成音より優先）
   function impulse(dur,decay){
     const rate=ctx.sampleRate, len=Math.floor(rate*dur), buf=ctx.createBuffer(2,len,rate);
     for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
@@ -566,18 +567,35 @@ const SFX = (()=>{
     if(o.rev && conv){ const rs=c.createGain(); rs.gain.value=o.rev; g.connect(rs); rs.connect(conv); }
     osc.start(t0); osc.stop(t0+dur+0.06);
   }
+  // 読み込んだ音ファイルを再生（あれば true）
+  function playBuf(name,gain){
+    const c=ac(); if(!c||muted||!bufs[name]) return false;
+    const s=c.createBufferSource(); s.buffer=bufs[name];
+    const g=c.createGain(); g.gain.value=(gain!=null?gain:0.85);
+    s.connect(g).connect(master); s.start();
+    return true;
+  }
+  // { name: url } を取得してデコード。無い/失敗したものは合成音のまま
+  async function load(map){
+    const c=ac(); if(!c) return;
+    for(const k in map){
+      try{
+        const r=await fetch(map[k]); if(!r.ok) continue;
+        bufs[k]=await c.decodeAudioData(await r.arrayBuffer());
+      }catch(e){ /* ファイルが無ければ合成音を使う */ }
+    }
+  }
   return {
     setMuted(m){ muted=m; },
     resume(){ ac(); },
-    // UIタップ：低くやわらかいブリップ
-    tap(){ voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
-    // 達成：低音2音の確定音＋うっすら残響
-    complete(){
+    load,
+    // ファイルがあればそれを、無ければ低音の合成音を鳴らす
+    tap(){ if(playBuf('tap',0.8)) return; voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
+    complete(){ if(playBuf('complete',0.9)) return;
       voice(110,0.24,{type:'sine',gain:0.09,cutoff:700});
       voice(165,0.22,{type:'triangle',gain:0.06,when:0.07,cutoff:800,rev:0.22});
     },
-    // レベルアップ：ズンと来る低音＋低めの上昇＋厚みの残響（高音なし）
-    levelup(){
+    levelup(){ if(playBuf('levelup',0.9)) return;
       voice(65,0.70,{type:'sine',gain:0.11,cutoff:650,rev:0.25});
       [98,131,165,196].forEach((f,i)=>voice(f,0.40,{type:'triangle',gain:0.06,when:i*0.10,cutoff:850,q:2,rev:0.30}));
       voice(82,0.80,{type:'sine',gain:0.05,when:0.40,cutoff:600,rev:0.30});
@@ -585,6 +603,8 @@ const SFX = (()=>{
     error(){ voice(140,0.24,{type:'sine',gain:0.06,glideTo:70,cutoff:700}); },
   };
 })();
+// フリー素材を使う場合はこの名前でリポジトリ直下に置く（無ければ合成音のまま）
+const SFX_FILES = { tap:'tap.mp3', complete:'complete.mp3', levelup:'levelup.mp3' };
 
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
@@ -1026,6 +1046,7 @@ seedIfEmpty();
 lastLevel = progress().level;
 render();
 initParticles();
+SFX.load(SFX_FILES);   // 音ファイルがあれば読み込む（無ければ合成音）
 </script>
 </body>
 </html>
