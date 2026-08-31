@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>THE SYSTEM — Mission Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#04060c;
+    --panel:rgba(9,17,33,.62);
+    --panel-solid:#0a1424;
+    --line:#123056;
+    --cyan:#35b6ff;
+    --cyan-hi:#8fe0ff;
+    --glow:rgba(53,182,255,.55);
+    --work:#35b6ff;
+    --private:#b57cff;
+    --mine:#34e5a4;
+    --partner:#ff6db3;
+    --sat:#4fa8ff;   /* 土曜 = 青 */
+    --sun:#ff6db3;   /* 日曜・祝日 = ピンク */
+    --text:#d3e6ff;
+    --muted:#6d88b3;
+    --danger:#ff5b6e;
+    --gold:#ffcf5c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Rajdhani',system-ui,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 50% -10%, rgba(53,182,255,.10), transparent 60%),
+      radial-gradient(900px 600px at 100% 120%, rgba(181,124,255,.08), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+    letter-spacing:.02em;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+    background-image:
+      linear-gradient(rgba(53,182,255,.055) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(53,182,255,.055) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:radial-gradient(1000px 800px at 50% 20%, #000, transparent 90%);
+  }
+  .wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:18px 14px 60px}
+
+  .panel{
+    position:relative;
+    background:var(--panel);
+    border:1px solid rgba(53,182,255,.45);
+    box-shadow:0 0 0 1px rgba(53,182,255,.08) inset, 0 0 26px rgba(53,182,255,.10), 0 0 60px rgba(0,0,0,.5);
+    backdrop-filter:blur(4px);
+  }
+  .panel .brk{position:absolute;width:16px;height:16px;border:2px solid var(--cyan);opacity:.9;filter:drop-shadow(0 0 4px var(--glow))}
+  .brk.tl{top:-2px;left:-2px;border-right:0;border-bottom:0}
+  .brk.tr{top:-2px;right:-2px;border-left:0;border-bottom:0}
+  .brk.bl{bottom:-2px;left:-2px;border-right:0;border-top:0}
+  .brk.br{bottom:-2px;right:-2px;border-left:0;border-top:0}
+
+  header.status{padding:16px 18px 18px;margin-bottom:14px}
+  .sys-tag{font-family:'Orbitron';font-weight:700;font-size:11px;letter-spacing:.42em;
+    color:var(--cyan-hi);text-shadow:0 0 10px var(--glow);margin:0 0 10px}
+  .sys-tag span{color:var(--muted);text-shadow:none;letter-spacing:.3em}
+  .statgrid{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .lvblock{display:flex;align-items:baseline;gap:10px}
+  .lv-label{font-family:'Orbitron';font-size:12px;color:var(--muted);letter-spacing:.2em}
+  .lv-num{font-family:'Orbitron';font-weight:900;font-size:52px;line-height:.9;color:#fff;
+    text-shadow:0 0 18px var(--glow),0 0 42px rgba(53,182,255,.4)}
+  .rank{font-family:'Orbitron';font-weight:900;font-size:26px;width:52px;height:52px;
+    display:grid;place-items:center;color:var(--cyan-hi);
+    border:2px solid var(--cyan);border-radius:6px;
+    box-shadow:0 0 16px var(--glow),inset 0 0 14px rgba(53,182,255,.25);
+    text-shadow:0 0 12px var(--glow)}
+  .rank[data-r="S"]{--cyan:var(--gold);--cyan-hi:#ffe9a8;--glow:rgba(255,207,92,.6);color:#ffe9a8}
+  .rank[data-r="A"]{--cyan:var(--private);--cyan-hi:#e0c8ff;--glow:rgba(181,124,255,.6)}
+  .xpwrap{flex:1;min-width:220px}
+  .xprow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);
+    font-family:'Orbitron';letter-spacing:.12em;margin-bottom:6px;padding-right:28px}
+  .xprow b{color:var(--cyan-hi)}
+  .xpbar{height:12px;background:rgba(53,182,255,.10);border:1px solid rgba(53,182,255,.35);
+    border-radius:2px;overflow:hidden;position:relative}
+  .xpfill{height:100%;width:0;background:linear-gradient(90deg,#1c7fd6,var(--cyan),var(--cyan-hi));
+    box-shadow:0 0 14px var(--glow);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .cleared{font-family:'Orbitron';font-size:12px;color:var(--muted);letter-spacing:.14em;margin-top:8px}
+  .cleared b{color:var(--text)}
+
+  .controls{display:flex;align-items:center;gap:10px;margin:14px 0;flex-wrap:wrap}
+  .period{font-family:'Orbitron';font-weight:700;font-size:22px;color:#fff;
+    text-shadow:0 0 12px var(--glow);flex:1;min-width:150px}
+  .period small{display:block;font-size:11px;color:var(--muted);letter-spacing:.2em;font-weight:500}
+  button{font-family:'Rajdhani';cursor:pointer;color:var(--text);background:transparent;border:none}
+  .nav,.toggle button,.today{font-family:'Orbitron';font-weight:700;letter-spacing:.08em;
+    border:1px solid rgba(53,182,255,.4);background:rgba(53,182,255,.06);
+    color:var(--cyan-hi);padding:8px 12px;border-radius:4px;font-size:13px;
+    transition:.15s;text-shadow:0 0 8px var(--glow)}
+  .nav{width:40px;padding:8px 0;text-align:center}
+  .nav:hover,.today:hover,.toggle button:hover{background:rgba(53,182,255,.18);box-shadow:0 0 12px var(--glow)}
+  .toggle{display:inline-flex;border:1px solid rgba(53,182,255,.4);border-radius:5px;overflow:hidden}
+  .toggle button{border:0;border-radius:0;background:transparent;text-shadow:none}
+  .toggle button.on{background:var(--cyan);color:#04060c;text-shadow:none;box-shadow:0 0 16px var(--glow)}
+
+  .cal{padding:10px}
+  .weekhead{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .weekhead div{font-family:'Orbitron';font-size:10px;text-align:center;color:var(--muted);
+    letter-spacing:.14em;padding:4px 0}
+  .weekhead .sun{color:var(--sun)} .weekhead .sat{color:var(--sat)}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cell{position:relative;min-height:80px;padding:5px 6px;border:1px solid rgba(53,182,255,.16);
+    background:rgba(9,17,33,.35);border-radius:4px;cursor:pointer;transition:.12s;overflow:hidden}
+  .cell:hover{border-color:rgba(53,182,255,.6);box-shadow:0 0 14px rgba(53,182,255,.18)}
+  .cell.dim{opacity:.32}
+  .cell.today{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset,0 0 16px var(--glow)}
+  /* 曜日・祝日で日付色を変える */
+  .dnum{font-family:'Orbitron';font-size:13px;font-weight:700;color:var(--text)}
+  .cell.c-pink  .dnum{color:var(--sun)}
+  .cell.c-blue  .dnum{color:var(--sat)}
+  .cell.c-today .dnum{color:var(--cyan-hi)}
+  .hol{font-size:9px;font-weight:600;color:var(--sun);line-height:1.05;margin-top:1px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 自分とパートナーの休みが重なる日を強調 */
+  .cell.together{
+    background:linear-gradient(160deg,rgba(255,109,179,.16),rgba(52,229,164,.13));
+    border-color:rgba(255,207,92,.75);
+    box-shadow:0 0 0 1px rgba(255,207,92,.4) inset,0 0 18px rgba(255,180,120,.32)}
+  .rest-tags{display:flex;gap:3px;margin-top:2px;flex-wrap:wrap}
+  .rtag{font-family:'Orbitron';font-size:7.5px;font-weight:700;letter-spacing:.08em;padding:1px 4px;border-radius:3px}
+  .rtag.mine{color:#04120c;background:var(--mine);box-shadow:0 0 8px rgba(52,229,164,.5)}
+  .rtag.partner{color:#150210;background:var(--partner);box-shadow:0 0 8px rgba(255,109,179,.5)}
+  .rtag.together{color:#1a0f02;background:linear-gradient(90deg,var(--partner),var(--gold));
+    box-shadow:0 0 10px rgba(255,207,92,.6);letter-spacing:.1em}
+
+  /* --- 休みの日：枠自体を光らせる（ゆっくり明滅） --- */
+  .cell.rest-mine{--rc:52,229,164}
+  .cell.rest-partner{--rc:255,109,179}
+  .cell.together{--rc:255,207,92}
+  .cell.rest-mine,.cell.rest-partner,.cell.together{
+    border-color:rgba(var(--rc),.85);animation:restglow 2.6s ease-in-out infinite}
+  .wcol.rest-mine{--rc:52,229,164}
+  .wcol.rest-partner{--rc:255,109,179}
+  .wcol.together{--rc:255,207,92}
+  .wcol.rest-mine,.wcol.rest-partner,.wcol.together{
+    border-color:rgba(var(--rc),.85);animation:restglow 2.6s ease-in-out infinite}
+  @keyframes restglow{
+    0%,100%{box-shadow:0 0 0 1px rgba(var(--rc),.45) inset,0 0 9px rgba(var(--rc),.35)}
+    50%{box-shadow:0 0 0 1px rgba(var(--rc),.95) inset,0 0 22px rgba(var(--rc),.72)}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .cell.rest-mine,.cell.rest-partner,.cell.together,
+    .wcol.rest-mine,.wcol.rest-partner,.wcol.together{
+      animation:none;box-shadow:0 0 0 1px rgba(var(--rc),.75) inset,0 0 16px rgba(var(--rc),.55)}
+  }
+  .dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .dot.work{background:var(--work);box-shadow:0 0 6px var(--work)}
+  .dot.private{background:var(--private);box-shadow:0 0 6px var(--private)}
+  .dot.done{opacity:.28;box-shadow:none}
+  .cell .count{position:absolute;right:5px;bottom:4px;font-family:'Orbitron';font-size:9px;color:var(--muted)}
+
+  /* --- batch select mode / copy-paste --- */
+  .cell.sel{border-color:var(--cyan-hi)!important;box-shadow:0 0 0 2px var(--cyan-hi) inset,0 0 16px var(--glow)!important}
+  .cell.sel::after{content:'✓';position:absolute;top:3px;right:5px;font-family:'Orbitron';font-size:11px;
+    font-weight:900;color:var(--cyan-hi);text-shadow:0 0 8px var(--glow)}
+  .wcol.sel{border-color:var(--cyan-hi)!important;box-shadow:0 0 0 2px var(--cyan-hi) inset,0 0 14px var(--glow)!important}
+  .batch-on{background:var(--cyan)!important;color:#04060c!important;text-shadow:none!important;box-shadow:0 0 16px var(--glow)!important}
+  .batchbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:70;
+    display:none;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:12px 14px;max-width:94vw}
+  .batchbar.show{display:flex}
+  .batchbar .cnt{font-family:'Orbitron';font-size:12px;letter-spacing:.1em;color:var(--cyan-hi);
+    text-shadow:0 0 8px var(--glow);margin-right:2px}
+  .batchbar button{font-family:'Orbitron';font-size:11px;font-weight:700;letter-spacing:.06em;padding:9px 11px;
+    border-radius:4px;border:1px solid rgba(53,182,255,.4);background:rgba(53,182,255,.06);color:var(--cyan-hi)}
+  .batchbar button:hover{background:rgba(53,182,255,.18)}
+  .batchbar .bmine{border-color:var(--mine);color:var(--mine)}
+  .batchbar .bpartner{border-color:var(--partner);color:var(--partner)}
+  .batchbar .btogether{border-color:var(--gold);color:var(--gold)}
+  .batchbar .bpaste{border-color:var(--private);color:#e0c8ff}
+  .batchbar .bclear{border-color:var(--danger);color:var(--danger)}
+  .batchbar .bdone{background:var(--cyan);color:#04060c;border-color:var(--cyan)}
+  .copybtn{color:var(--muted);font-size:15px;padding:0 4px}.copybtn:hover{color:var(--cyan-hi)}
+  .pastestrip{display:none;align-items:center;gap:8px;margin:2px 0 6px;padding:8px 10px;
+    border:1px dashed rgba(181,124,255,.5);border-radius:4px;background:rgba(181,124,255,.06)}
+  .pastestrip.show{display:flex}
+  .pastestrip .pinfo{flex:1;min-width:0;font-size:13px;color:#e0c8ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pastestrip .pinfo b{font-family:'Orbitron';font-size:9px;letter-spacing:.1em;color:var(--private);margin-right:6px}
+  .pastestrip button{font-family:'Orbitron';font-size:10px;font-weight:700;letter-spacing:.06em;padding:7px 12px;
+    border-radius:4px;border:1px solid var(--private);color:#0e0420;background:var(--private);box-shadow:0 0 10px rgba(181,124,255,.4)}
+
+  .weekgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .wcol{border:1px solid rgba(53,182,255,.16);background:rgba(9,17,33,.35);border-radius:4px;
+    min-height:230px;padding:6px;cursor:pointer;transition:.12s}
+  .wcol:hover{border-color:rgba(53,182,255,.5)}
+  .wcol.today{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset,0 0 14px var(--glow)}
+  .wcol.together{background:linear-gradient(160deg,rgba(255,109,179,.14),rgba(52,229,164,.11));
+    border-color:rgba(255,207,92,.7);box-shadow:0 0 14px rgba(255,180,120,.28)}
+  .wcol .whd{font-family:'Orbitron';font-size:11px;text-align:center;color:var(--muted);
+    padding-bottom:6px;border-bottom:1px solid rgba(53,182,255,.16);margin-bottom:6px}
+  .wcol .whd b{display:block;font-size:16px;color:var(--text)}
+  .wcol .whd.c-pink,.wcol .whd.c-pink b{color:var(--sun)}
+  .wcol .whd.c-blue,.wcol .whd.c-blue b{color:var(--sat)}
+  .whol{font-family:'Rajdhani';font-size:9px;font-weight:600;color:var(--sun);margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wm{font-size:12px;padding:4px 5px;border-radius:3px;margin-bottom:4px;line-height:1.15;
+    border-left:3px solid var(--work);background:rgba(53,182,255,.08)}
+  .wm.private{border-left-color:var(--private);background:rgba(181,124,255,.08)}
+  .wm.done{opacity:.4;text-decoration:line-through}
+  .wr{font-family:'Orbitron';font-size:8px;font-weight:700;letter-spacing:.06em;
+    padding:1px 4px;border-radius:3px;display:inline-block;margin:0 3px 4px 0}
+  .wr.mine{color:#04120c;background:var(--mine)} .wr.partner{color:#150210;background:var(--partner)}
+  .wr.together{color:#1a0f02;background:linear-gradient(90deg,var(--partner),var(--gold))}
+
+  .overlay{position:fixed;inset:0;background:rgba(2,4,10,.72);backdrop-filter:blur(3px);
+    z-index:50;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;overflow:auto}
+  .overlay.show{display:flex;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{width:100%;max-width:520px;padding:18px;margin-top:20px}
+  .modal h2{font-family:'Orbitron';font-weight:700;font-size:16px;margin:0 0 2px;color:#fff;
+    text-shadow:0 0 12px var(--glow);letter-spacing:.06em}
+  .modal .sub{font-family:'Orbitron';font-size:10px;color:var(--muted);letter-spacing:.2em;margin-bottom:14px}
+  .modal .sub .hn{color:var(--sun)}
+  .close{position:absolute;top:12px;right:14px;font-family:'Orbitron';font-size:20px;color:var(--muted);
+    width:30px;height:30px;line-height:26px;text-align:center}
+  .close:hover{color:var(--cyan-hi)}
+  .sect-label{font-family:'Orbitron';font-size:10px;letter-spacing:.24em;color:var(--cyan);
+    margin:16px 0 8px;text-shadow:0 0 8px var(--glow)}
+  .restbtns{display:flex;gap:8px}
+  .restbtns button{flex:1;font-family:'Orbitron';font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:10px;border-radius:4px;border:1px solid rgba(53,182,255,.3);background:rgba(53,182,255,.05);color:var(--muted)}
+  .restbtns button.on.mine{color:#04120c;background:var(--mine);border-color:var(--mine);box-shadow:0 0 14px rgba(52,229,164,.4)}
+  .restbtns button.on.partner{color:#150210;background:var(--partner);border-color:var(--partner);box-shadow:0 0 14px rgba(255,109,179,.4)}
+  .together-note{font-family:'Orbitron';font-size:10px;letter-spacing:.1em;color:var(--gold);
+    text-align:center;margin-top:8px;text-shadow:0 0 10px rgba(255,207,92,.5);display:none}
+  .together-note.show{display:block}
+
+  .mlist{list-style:none;margin:0;padding:0}
+  .mlist li{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:6px;
+    border:1px solid rgba(53,182,255,.18);border-radius:4px;background:rgba(9,17,33,.4)}
+  .mlist li.done{opacity:.5}
+  .chk{width:22px;height:22px;flex:0 0 22px;border:2px solid var(--cyan);border-radius:4px;
+    display:grid;place-items:center;cursor:pointer;color:transparent;font-size:14px;transition:.15s}
+  .mlist li.done .chk{background:var(--cyan);color:#04060c;box-shadow:0 0 12px var(--glow)}
+  .m-body{flex:1;min-width:0}
+  .m-title{font-size:15px;font-weight:600;line-height:1.15}
+  .mlist li.done .m-title{text-decoration:line-through}
+  .m-meta{font-family:'Orbitron';font-size:9px;letter-spacing:.1em;margin-top:2px}
+  .tag{padding:1px 6px;border-radius:3px;margin-right:6px}
+  .tag.work{color:#04060c;background:var(--work)} .tag.private{color:#0e0420;background:var(--private)}
+  .xpv{color:var(--gold)}
+  .del{color:var(--muted);font-size:18px;padding:0 4px}.del:hover{color:var(--danger)}
+  .empty{font-family:'Orbitron';font-size:11px;color:var(--muted);letter-spacing:.14em;
+    text-align:center;padding:14px;border:1px dashed rgba(53,182,255,.2);border-radius:4px}
+
+  .addform input[type=text]{width:100%;padding:11px 12px;margin-bottom:10px;font-family:'Rajdhani';
+    font-size:16px;color:var(--text);background:rgba(4,8,16,.6);border:1px solid rgba(53,182,255,.35);
+    border-radius:4px;outline:none}
+  .addform input[type=text]:focus{border-color:var(--cyan);box-shadow:0 0 12px var(--glow)}
+  .addform input::placeholder{color:#41567a}
+  .pick{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .pick button{font-family:'Orbitron';font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:8px 12px;border:1px solid rgba(53,182,255,.3);border-radius:4px;color:var(--muted);background:transparent}
+  .pick button.on{color:#04060c;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--glow)}
+  .pick.cat button.on[data-v=work]{background:var(--work);border-color:var(--work)}
+  .pick.cat button.on[data-v=private]{background:var(--private);border-color:var(--private);color:#0e0420}
+  .addbtn{width:100%;font-family:'Orbitron';font-weight:700;letter-spacing:.14em;font-size:14px;
+    padding:12px;border:1px solid var(--cyan);border-radius:4px;color:#04060c;
+    background:linear-gradient(90deg,var(--cyan),var(--cyan-hi));box-shadow:0 0 18px var(--glow)}
+  .addbtn:hover{filter:brightness(1.1)}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    z-index:80;background:var(--panel-solid);border:1px solid var(--cyan);border-radius:5px;
+    padding:11px 18px;font-family:'Orbitron';font-size:12px;letter-spacing:.08em;color:var(--cyan-hi);
+    box-shadow:0 0 22px var(--glow);opacity:0;transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .levelup{position:fixed;inset:0;z-index:90;display:none;place-items:center;pointer-events:none}
+  .levelup.show{display:grid;animation:fade .3s ease}
+  .levelup .lu{font-family:'Orbitron';font-weight:900;font-size:min(15vw,86px);color:#fff;
+    letter-spacing:.06em;text-shadow:0 0 30px var(--cyan),0 0 70px var(--glow);text-align:center;animation:pop 1.4s ease}
+  .levelup .lu small{display:block;font-size:16px;letter-spacing:.5em;color:var(--cyan-hi);margin-top:8px}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}18%{transform:scale(1.05);opacity:1}
+    78%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+
+  .soundtgl{position:absolute;top:10px;right:12px;width:26px;height:26px;padding:0;
+    display:grid;place-items:center;border:1px solid rgba(53,182,255,.4);border-radius:4px;
+    background:rgba(53,182,255,.06);color:var(--cyan-hi)}
+  .soundtgl:hover{background:rgba(53,182,255,.18)}
+  .soundtgl svg{width:15px;height:15px;display:block}
+  .soundtgl.off{color:var(--muted);border-color:rgba(109,136,179,.4)}
+
+  .footnote{text-align:center;font-family:'Orbitron';font-size:9px;color:#2f4468;letter-spacing:.2em;margin-top:22px}
+  @media(max-width:640px){
+    .wrap{padding:12px 10px 60px}
+    .lv-num{font-size:44px}
+    .rank{width:46px;height:46px;font-size:22px}
+    .period{font-size:18px}
+    .nav,.toggle button,.today{padding:7px 9px;font-size:12px}
+    .nav{width:34px}
+    .grid,.weekgrid,.weekhead{gap:4px}
+    .cell{min-height:64px;padding:4px 5px}
+    .dnum{font-size:12px}
+    .wcol{min-height:auto}
+    .weekgrid{grid-template-columns:repeat(2,1fr)}
+    .batchbar{gap:6px;padding:10px}
+    .batchbar button{padding:8px 9px;font-size:10px}
+  }
+  @media(max-width:400px){
+    .lv-num{font-size:38px}
+    .cell{min-height:56px}
+    .hol{font-size:8px}
+    .rest-tags{gap:2px}
+    .rtag{font-size:7px;padding:1px 3px}
+    .dot{width:6px;height:6px}
+    .weekhead div{font-size:9px}
+    .statgrid{gap:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== PLAYER STATUS ===== -->
+  <header class="status panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="soundtgl" id="soundBtn" aria-label="Sound on/off"></button>
+    <p class="sys-tag">⌜ THE SYSTEM ⌟ &nbsp;<span>PLAYER STATUS</span></p>
+    <div class="statgrid">
+      <div class="lvblock">
+        <span class="lv-label">LV.</span>
+        <span class="lv-num" id="lvNum">1</span>
+        <span class="rank" id="rank" data-r="E">E</span>
+      </div>
+      <div class="xpwrap">
+        <div class="xprow"><span>EXP</span><span><b id="xpInto">0</b> / <span id="xpNeed">100</span></span></div>
+        <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
+        <div class="cleared">GATES CLEARED &nbsp;<b id="clearedNum">0</b></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== CONTROLS ===== -->
+  <div class="controls">
+    <button class="nav" id="prev">‹</button>
+    <div class="period"><span id="periodMain">—</span><small id="periodSub"></small></div>
+    <button class="today" id="todayBtn">TODAY</button>
+    <button class="today" id="batchBtn">SELECT</button>
+    <div class="toggle">
+      <button id="tMonth" class="on">MONTH</button>
+      <button id="tWeek">WEEK</button>
+    </div>
+    <button class="nav" id="next">›</button>
+  </div>
+
+  <!-- ===== CALENDAR ===== -->
+  <div class="cal panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <div id="calBody"></div>
+  </div>
+
+  <p class="footnote">CLEAR MISSIONS. GAIN EXP. LEVEL UP.</p>
+</div>
+
+<!-- ===== DAY MODAL ===== -->
+<div class="overlay" id="overlay">
+  <div class="modal panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="close" id="closeBtn">✕</button>
+    <h2 id="mDate">—</h2>
+    <div class="sub" id="mSub">MISSION LOG</div>
+
+    <div class="sect-label">REST DAY</div>
+    <div class="restbtns">
+      <button id="restMine" class="mine">MY REST DAY</button>
+      <button id="restPartner" class="partner">PARTNER REST DAY</button>
+    </div>
+    <div class="together-note" id="togetherNote">★ OFF TOGETHER ★</div>
+
+    <div class="sect-label">MISSIONS</div>
+    <ul class="mlist" id="mList"></ul>
+    <div class="pastestrip" id="pasteStrip">
+      <div class="pinfo" id="pasteInfo"></div>
+      <button id="pasteHereBtn">⧉ PASTE HERE</button>
+    </div>
+
+    <div class="sect-label">NEW MISSION</div>
+    <div class="addform">
+      <input type="text" id="mTitle" placeholder="Mission name..." maxlength="60" autocomplete="off">
+      <div class="pick cat" id="pickCat">
+        <button data-v="work" class="on">WORK</button>
+        <button data-v="private">PRIVATE</button>
+      </div>
+      <div class="pick diff" id="pickDiff">
+        <button data-v="10">EASY · 10</button>
+        <button data-v="25" class="on">NORMAL · 25</button>
+        <button data-v="50">HARD · 50</button>
+        <button data-v="100">BOSS · 100</button>
+      </div>
+      <button class="addbtn" id="addBtn">ACCEPT MISSION</button>
+    </div>
+  </div>
+</div>
+
+<div class="batchbar panel" id="batchBar">
+  <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+  <span class="cnt" id="selCnt">0 selected</span>
+  <button class="bmine" id="bMine">MY REST</button>
+  <button class="bpartner" id="bPartner">PARTNER</button>
+  <button class="btogether" id="bTogether">TOGETHER</button>
+  <button class="bpaste" id="bPaste" style="display:none">PASTE TASK</button>
+  <button class="bclear" id="bClear">CLEAR REST</button>
+  <button class="bdone" id="bDone">DONE</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="levelup" id="levelup"><div class="lu">LEVEL UP<small id="luLevel">LV.2</small></div></div>
+
+<script>
+/* =========================================================
+   THE SYSTEM — Mission Scheduler
+   単一ファイル / localStorage保存 / GitHub Pages対応
+   ========================================================= */
+const KEY = 'the_system_scheduler_v1';
+
+let state = { missions: [], rest: {} };
+let viewMode = 'month';
+let cursor = new Date();
+let selDate = null;
+let newCat = 'work', newXp = 25;
+let restMode = false;      // 複数選択（一括）モード
+let sel = new Set();       // 選択中の日付
+let clip = null;           // コピーしたタスク {title,category,xp}
+
+/* =========================================================
+   効果音（Web Audioで合成・外部ファイル不要）
+   ========================================================= */
+const SFX = (()=>{
+  let ctx=null, muted=false;
+  function ac(){
+    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(ctx && ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+  function tone(freq,dur,type,gain,when){
+    const c=ac(); if(!c||muted) return;
+    const t0=c.currentTime+(when||0);
+    const o=c.createOscillator(), g=c.createGain();
+    o.type=type||'square'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(gain||0.05,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g).connect(c.destination);
+    o.start(t0); o.stop(t0+dur+0.03);
+  }
+  return {
+    setMuted(m){ muted=m; },
+    resume(){ ac(); },
+    tap(){ tone(680,0.055,'square',0.045); },
+    complete(){ tone(660,0.09,'triangle',0.06); tone(990,0.13,'triangle',0.055,0.07); },
+    levelup(){ [523,659,784,1046].forEach((f,i)=>tone(f,0.2,'sawtooth',0.055,i*0.09)); },
+    error(){ tone(160,0.14,'sawtooth',0.05); },
+  };
+})();
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{ const s = localStorage.getItem(KEY); if(s) state = JSON.parse(s); }catch(e){}
+  if(!state.missions) state.missions = [];
+  if(!state.rest) state.rest = {};
+}
+
+/* ---- 日付ユーティリティ ---- */
+const pad = n => String(n).padStart(2,'0');
+const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = () => fmt(new Date());
+const WD = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+/* =========================================================
+   日本の祝日（計算式で自動判定・約1980〜2099年で有効）
+   ※オリンピック年の特例移動など一部の一回限りの特別祝日は未対応
+   ========================================================= */
+const holCache = {};
+function nthMonday(y, m, n){ // m:1-12 → その月の第n月曜の「日」を返す
+  const first = new Date(y, m-1, 1);
+  const shift = (1 - first.getDay() + 7) % 7;
+  return 1 + shift + (n-1)*7;
+}
+function shunbun(y){ return Math.floor(20.8431 + 0.242194*(y-1980) - Math.floor((y-1980)/4)); } // 春分
+function shubun(y){  return Math.floor(23.2488 + 0.242194*(y-1980) - Math.floor((y-1980)/4)); } // 秋分
+function buildHolidays(y){
+  const map = {};
+  const set = (mo,da,name)=>{ map[`${y}-${pad(mo)}-${pad(da)}`] = name; };
+  set(1,1,'元日');
+  set(1,nthMonday(y,1,2),'成人の日');
+  set(2,11,'建国記念の日');
+  if(y>=2020) set(2,23,'天皇誕生日');
+  set(3,shunbun(y),'春分の日');
+  set(4,29,'昭和の日');
+  set(5,3,'憲法記念日');
+  set(5,4,'みどりの日');
+  set(5,5,'こどもの日');
+  set(7,nthMonday(y,7,3),'海の日');
+  if(y>=2016) set(8,11,'山の日');
+  set(9,nthMonday(y,9,3),'敬老の日');
+  set(9,shubun(y),'秋分の日');
+  set(10,nthMonday(y,10,2),'スポーツの日');
+  set(11,3,'文化の日');
+  set(11,23,'勤労感謝の日');
+  if(y<2019) set(12,23,'天皇誕生日');
+  const oneDay = 86400000;
+  const base = {...map};
+  // 国民の休日（祝日に挟まれた平日）
+  for(let d=new Date(y,0,1); d.getFullYear()===y; d.setDate(d.getDate()+1)){
+    const ds = fmt(d);
+    if(map[ds] || d.getDay()===0) continue;
+    if(base[fmt(new Date(d.getTime()-oneDay))] && base[fmt(new Date(d.getTime()+oneDay))]) map[ds] = '国民の休日';
+  }
+  // 振替休日（日曜と重なった祝日の次の平日）
+  for(const ds in {...map}){
+    const d = new Date(ds+'T00:00:00');
+    if(d.getDay()===0){
+      let nx = new Date(d.getTime()+oneDay);
+      while(map[fmt(nx)]) nx = new Date(nx.getTime()+oneDay);
+      map[fmt(nx)] = '振替休日';
+    }
+  }
+  return map;
+}
+function holidaysFor(y){ return holCache[y] || (holCache[y] = buildHolidays(y)); }
+function holidayName(ds){ return holidaysFor(+ds.slice(0,4))[ds] || null; }
+
+/* 日付の表示色クラス：祝日/日曜→ピンク、土曜→青、当日(平日)→シアン */
+function colorClass(d, ds){
+  if(holidayName(ds)) return 'c-pink';
+  const w = d.getDay();
+  if(w===0) return 'c-pink';
+  if(w===6) return 'c-blue';
+  if(ds===today()) return 'c-today';
+  return '';
+}
+
+/* ---- レベル計算 ---- */
+function needFor(level){ return 100 + (level-1)*50; }
+function progress(){
+  const total = state.missions.filter(m=>m.done).reduce((s,m)=>s+m.xp,0);
+  let level=1, acc=0;
+  while(total >= acc + needFor(level)){ acc += needFor(level); level++; }
+  return { level, into: total-acc, need: needFor(level),
+           cleared: state.missions.filter(m=>m.done).length };
+}
+function rankFor(lv){
+  if(lv>=55) return 'S'; if(lv>=35) return 'A'; if(lv>=20) return 'B';
+  if(lv>=10) return 'C'; if(lv>=5) return 'D'; return 'E';
+}
+
+let lastLevel = 1;
+function renderStatus(animate){
+  const p = progress();
+  lvNum.textContent = p.level;
+  xpInto.textContent = p.into;
+  xpNeed.textContent = p.need;
+  xpFill.style.width = Math.min(100, p.into/p.need*100) + '%';
+  clearedNum.textContent = p.cleared;
+  const r = rankFor(p.level);
+  rank.textContent = r; rank.dataset.r = r;
+  if(animate && p.level > lastLevel) showLevelUp(p.level);
+  lastLevel = p.level;
+}
+
+/* ---- カレンダー描画 ---- */
+function missionsOn(dstr){ return state.missions.filter(m=>m.date===dstr); }
+function restOn(dstr){ return state.rest[dstr] || {}; }
+
+function render(){
+  renderStatus(false);
+  if(viewMode==='month') renderMonth(); else renderWeek();
+}
+
+function renderMonth(){
+  const y = cursor.getFullYear(), m = cursor.getMonth();
+  periodMain.textContent = `${y}.${pad(m+1)}`;   // 月は数字表示
+  periodSub.textContent = '';
+  const first = new Date(y, m, 1);
+  const start = new Date(y, m, 1 - first.getDay());
+  let html = '<div class="weekhead">' +
+    WD.map((d,i)=>`<div class="${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('') + '</div><div class="grid">';
+  for(let i=0;i<42;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const ds = fmt(d);
+    const inMonth = d.getMonth()===m;
+    const isToday = ds===today();
+    const cc = colorClass(d, ds);
+    const hol = holidayName(ds);
+    const ms = missionsOn(ds);
+    const rst = restOn(ds);
+    const together = rst.mine && rst.partner;
+    const restClass = together ? 'together' : (rst.mine ? 'rest-mine' : (rst.partner ? 'rest-partner' : ''));
+    const dots = ms.slice(0,8).map(x=>`<span class="dot ${x.category}${x.done?' done':''}"></span>`).join('');
+    html += `<div class="cell ${inMonth?'':'dim'} ${isToday?'today':''} ${cc} ${restClass} ${sel.has(ds)?'sel':''}" data-d="${ds}">
+      <div class="dnum">${d.getDate()}</div>
+      ${hol?`<div class="hol">${escapeHtml(hol)}</div>`:''}
+      <div class="dots">${dots}</div>
+      ${ms.length?`<span class="count">${ms.filter(x=>x.done).length}/${ms.length}</span>`:''}
+    </div>`;
+  }
+  html += '</div>';
+  calBody.innerHTML = html;
+  calBody.querySelectorAll('.cell').forEach(c=>c.onclick=()=>onCell(c.dataset.d));
+}
+
+function renderWeek(){
+  const start = new Date(cursor); start.setDate(cursor.getDate()-cursor.getDay());
+  const end = new Date(start); end.setDate(start.getDate()+6);
+  periodMain.textContent = `${pad(start.getMonth()+1)}/${pad(start.getDate())} – ${pad(end.getMonth()+1)}/${pad(end.getDate())}`;
+  periodSub.textContent = start.getFullYear() + (start.getFullYear()!==end.getFullYear()? ' – '+end.getFullYear():'');
+  let html = '<div class="weekgrid">';
+  for(let i=0;i<7;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const ds = fmt(d);
+    const isToday = ds===today();
+    const cc = colorClass(d, ds);
+    const hol = holidayName(ds);
+    const ms = missionsOn(ds);
+    const rst = restOn(ds);
+    const together = rst.mine && rst.partner;
+    const restClass = together ? 'together' : (rst.mine ? 'rest-mine' : (rst.partner ? 'rest-partner' : ''));
+    let rest = '';
+    if(together) rest = '<span class="wr together">★ REST TOGETHER</span>';
+    else { if(rst.mine) rest += '<span class="wr mine">MY REST</span>'; if(rst.partner) rest += '<span class="wr partner">PARTNER</span>'; }
+    const items = ms.map(x=>`<div class="wm ${x.category}${x.done?' done':''}">${escapeHtml(x.title)}</div>`).join('');
+    html += `<div class="wcol ${isToday?'today':''} ${restClass} ${sel.has(ds)?'sel':''}" data-d="${ds}">
+      <div class="whd ${cc}">${WD[i]}<b>${d.getDate()}</b>${hol?`<div class="whol">${escapeHtml(hol)}</div>`:''}</div>
+      ${rest}${items || '<div style="text-align:center;color:#2f4468;font-family:Orbitron;font-size:9px;padding:8px 0">—</div>'}
+    </div>`;
+  }
+  html += '</div>';
+  calBody.innerHTML = html;
+  calBody.querySelectorAll('.wcol').forEach(c=>c.onclick=()=>onCell(c.dataset.d));
+}
+
+/* ---- モーダル ---- */
+function openDay(ds){
+  selDate = ds;
+  const d = new Date(ds+'T00:00:00');
+  mDate.textContent = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+  const hn = holidayName(ds);
+  mSub.innerHTML = WD[d.getDay()] + (hn? ` · <span class="hn">${escapeHtml(hn)}</span>`:'') + ' · MISSION LOG';
+  renderRestButtons();
+  renderMissionList();
+  showPasteStrip();
+  mTitle.value='';
+  overlay.classList.add('show');
+  setTimeout(()=>mTitle.focus(),50);
+}
+function closeModal(){ overlay.classList.remove('show'); selDate=null; }
+
+function renderRestButtons(){
+  const rst = restOn(selDate);
+  restMine.classList.toggle('on', !!rst.mine);
+  restPartner.classList.toggle('on', !!rst.partner);
+  togetherNote.classList.toggle('show', !!(rst.mine && rst.partner));
+}
+function toggleRest(who){
+  if(!state.rest[selDate]) state.rest[selDate] = {};
+  state.rest[selDate][who] = !state.rest[selDate][who];
+  if(!state.rest[selDate].mine && !state.rest[selDate].partner) delete state.rest[selDate];
+  save(); renderRestButtons(); render();
+}
+
+function renderMissionList(){
+  const ms = missionsOn(selDate);
+  if(!ms.length){ mList.innerHTML = '<div class="empty">NO ACTIVE MISSIONS</div>'; return; }
+  mList.innerHTML = ms.map(m=>`
+    <li class="${m.done?'done':''}" data-id="${m.id}">
+      <div class="chk">✓</div>
+      <div class="m-body">
+        <div class="m-title">${escapeHtml(m.title)}</div>
+        <div class="m-meta"><span class="tag ${m.category}">${m.category.toUpperCase()}</span><span class="xpv">+${m.xp} EXP</span></div>
+      </div>
+      <button class="copybtn" title="Copy">⧉</button>
+      <button class="del">✕</button>
+    </li>`).join('');
+  mList.querySelectorAll('li').forEach(li=>{
+    const id = li.dataset.id;
+    li.querySelector('.chk').onclick = ()=>toggleDone(id);
+    li.querySelector('.copybtn').onclick = ()=>copyMission(id);
+    li.querySelector('.del').onclick = ()=>deleteMission(id);
+  });
+}
+
+function addMission(){
+  const t = mTitle.value.trim();
+  if(!t){ toast('Enter a mission name'); mTitle.focus(); return; }
+  state.missions.push({ id:'m'+Date.now()+Math.random().toString(36).slice(2,6),
+    title:t, category:newCat, date:selDate, xp:newXp, done:false });
+  save(); mTitle.value=''; renderMissionList(); render(); mTitle.focus();
+}
+function toggleDone(id){
+  const m = state.missions.find(x=>x.id===id); if(!m) return;
+  m.done = !m.done; save();
+  renderMissionList(); renderStatus(true);
+  if(viewMode==='month') renderMonth(); else renderWeek();
+  if(m.done){ toast(`Mission cleared  ·  +${m.xp} EXP`); SFX.complete(); }
+}
+function deleteMission(id){
+  state.missions = state.missions.filter(x=>x.id!==id);
+  save(); renderMissionList(); render();
+}
+
+let toastT;
+function toast(msg){
+  clearTimeout(toastT);
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  toastT = setTimeout(()=>toastEl.classList.remove('show'), 1900);
+}
+function showLevelUp(lv){
+  luLevel.textContent = 'LV.'+lv;
+  levelup.classList.add('show');
+  SFX.levelup();
+  setTimeout(()=>levelup.classList.remove('show'), 1500);
+}
+
+function move(dir){
+  if(viewMode==='month') cursor.setMonth(cursor.getMonth()+dir);
+  else cursor.setDate(cursor.getDate()+dir*7);
+  render();
+}
+function setView(v){
+  viewMode=v;
+  tMonth.classList.toggle('on', v==='month');
+  tWeek.classList.toggle('on', v==='week');
+  render();
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---- セルのタップ：通常は日を開く / 選択モード中は選択トグル ---- */
+function onCell(ds){
+  if(restMode){
+    if(sel.has(ds)) sel.delete(ds); else sel.add(ds);
+    updateBatch();
+    if(viewMode==='month') renderMonth(); else renderWeek();
+  } else openDay(ds);
+}
+
+/* ---- 複数選択（一括）モード ---- */
+function toggleBatch(){ restMode ? exitBatch() : enterBatch(); }
+function enterBatch(){
+  restMode=true; sel.clear();
+  batchBtn.classList.add('batch-on'); batchBtn.textContent='SELECTING';
+  batchBar.classList.add('show'); updateBatch(); render();
+}
+function exitBatch(){
+  restMode=false; sel.clear();
+  batchBtn.classList.remove('batch-on'); batchBtn.textContent='SELECT';
+  batchBar.classList.remove('show'); render();
+}
+function updateBatch(){
+  selCnt.textContent = sel.size + ' selected';
+  bPaste.style.display = clip ? '' : 'none';
+}
+function applyRestBatch(type){
+  if(!sel.size){ toast('Select days first'); return; }
+  sel.forEach(ds=>{
+    if(type==='clear'){ delete state.rest[ds]; return; }
+    if(!state.rest[ds]) state.rest[ds]={};
+    if(type==='mine'||type==='both') state.rest[ds].mine=true;
+    if(type==='partner'||type==='both') state.rest[ds].partner=true;
+  });
+  const n=sel.size; save(); sel.clear(); updateBatch();
+  if(viewMode==='month') renderMonth(); else renderWeek();
+  toast(`Rest applied to ${n} day${n>1?'s':''}`);
+}
+function pasteBatch(){
+  if(!clip){ toast('Copy a mission first'); return; }
+  if(!sel.size){ toast('Select days first'); return; }
+  const n=sel.size;
+  sel.forEach(ds=>state.missions.push({ id:newId(),
+    title:clip.title, category:clip.category, date:ds, xp:clip.xp, done:false }));
+  save(); sel.clear(); updateBatch();
+  if(viewMode==='month') renderMonth(); else renderWeek();
+  toast(`"${clip.title}" added to ${n} day${n>1?'s':''}`);
+}
+
+/* ---- タスクのコピー / ペースト ---- */
+function newId(){ return 'm'+Date.now()+Math.random().toString(36).slice(2,6); }
+function copyMission(id){
+  const m=state.missions.find(x=>x.id===id); if(!m) return;
+  clip={ title:m.title, category:m.category, xp:m.xp };
+  updateBatch(); showPasteStrip();
+  toast('Copied: '+m.title);
+}
+function showPasteStrip(){
+  if(clip && selDate){
+    pasteInfo.innerHTML = `<b>${clip.category.toUpperCase()} · +${clip.xp}</b>${escapeHtml(clip.title)}`;
+    pasteStrip.classList.add('show');
+  } else pasteStrip.classList.remove('show');
+}
+function pasteHere(){
+  if(!clip || !selDate) return;
+  state.missions.push({ id:newId(), title:clip.title, category:clip.category, date:selDate, xp:clip.xp, done:false });
+  save(); renderMissionList(); render(); toast('Pasted: '+clip.title);
+}
+
+const $ = id => document.getElementById(id);
+const lvNum=$('lvNum'), xpInto=$('xpInto'), xpNeed=$('xpNeed'), xpFill=$('xpFill'),
+  clearedNum=$('clearedNum'), rank=$('rank'), periodMain=$('periodMain'), periodSub=$('periodSub'),
+  calBody=$('calBody'), overlay=$('overlay'), mDate=$('mDate'), mSub=$('mSub'), mList=$('mList'),
+  mTitle=$('mTitle'), restMine=$('restMine'), restPartner=$('restPartner'), togetherNote=$('togetherNote'),
+  toastEl=$('toast'), levelup=$('levelup'), luLevel=$('luLevel'),
+  batchBtn=$('batchBtn'), batchBar=$('batchBar'), selCnt=$('selCnt'), bPaste=$('bPaste'),
+  pasteStrip=$('pasteStrip'), pasteInfo=$('pasteInfo'), soundBtn=$('soundBtn');
+
+$('prev').onclick=()=>move(-1);
+$('next').onclick=()=>move(1);
+$('todayBtn').onclick=()=>{ cursor=new Date(); render(); };
+$('tMonth').onclick=()=>setView('month');
+$('tWeek').onclick=()=>setView('week');
+$('closeBtn').onclick=closeModal;
+overlay.onclick=e=>{ if(e.target===overlay) closeModal(); };
+restMine.onclick=()=>toggleRest('mine');
+restPartner.onclick=()=>toggleRest('partner');
+$('addBtn').onclick=addMission;
+$('batchBtn').onclick=toggleBatch;
+$('bMine').onclick=()=>applyRestBatch('mine');
+$('bPartner').onclick=()=>applyRestBatch('partner');
+$('bTogether').onclick=()=>applyRestBatch('both');
+$('bClear').onclick=()=>applyRestBatch('clear');
+$('bPaste').onclick=pasteBatch;
+$('bDone').onclick=exitBatch;
+$('pasteHereBtn').onclick=pasteHere;
+mTitle.addEventListener('keydown',e=>{ if(e.key==='Enter') addMission(); });
+$('pickCat').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  $('pickCat').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); newCat=b.dataset.v;
+});
+$('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  $('pickDiff').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+/* --- 効果音：クリック音（委任）＋ミュート切替 --- */
+const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
+const ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><line x1="16" y1="9.5" x2="21" y2="14.5"/><line x1="21" y1="9.5" x2="16" y2="14.5"/></svg>';
+function updateSoundBtn(){ soundBtn.innerHTML = muted?ICON_OFF:ICON_ON; soundBtn.classList.toggle('off', muted); }
+let muted=false;
+try{ muted = localStorage.getItem('sfx_muted')==='1'; }catch(e){}
+SFX.setMuted(muted); updateSoundBtn();
+document.addEventListener('pointerdown',e=>{
+  SFX.resume();
+  if(e.target.closest('button, .cell, .wcol')) SFX.tap();
+}, true);
+soundBtn.onclick=()=>{
+  muted=!muted; SFX.setMuted(muted);
+  try{ localStorage.setItem('sfx_muted', muted?'1':'0'); }catch(e){}
+  updateSoundBtn();
+  if(!muted) SFX.tap();
+};
+
+/* 初回サンプル（保存が空のときだけ・together強調のデモ含む） */
+function seedIfEmpty(){
+  if(state.missions.length || Object.keys(state.rest).length) return;
+  const t = today();
+  const d2 = fmt(new Date(Date.now()+86400000));
+  state.missions = [
+    {id:'seed1',title:'Morning review',category:'work',date:t,xp:25,done:true},
+    {id:'seed2',title:'Store visit report',category:'work',date:t,xp:50,done:false},
+    {id:'seed3',title:'Gym session',category:'private',date:t,xp:25,done:false},
+    {id:'seed4',title:'Weekly sales meeting',category:'work',date:d2,xp:50,done:false},
+  ];
+  state.rest[d2] = {mine:true, partner:true}; // ← 重なり強調のデモ
+  save();
+}
+
+load();
+seedIfEmpty();
+lastLevel = progress().level;
+render();
+</script>
+</body>
+</html>
