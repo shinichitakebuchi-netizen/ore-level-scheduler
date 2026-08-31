@@ -569,21 +569,20 @@ const SFX = (()=>{
   return {
     setMuted(m){ muted=m; },
     resume(){ ac(); },
-    // UIタップ：ピッチが少し下がるシャープなブリップ
-    tap(){ voice(900,0.10,{type:'square',gain:0.05,glideTo:520,cutoff:3400,q:2}); },
-    // 達成：低音＋2音の確定音＋残響
+    // UIタップ：低くやわらかいブリップ
+    tap(){ voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
+    // 達成：低音2音の確定音＋うっすら残響
     complete(){
-      voice(196,0.20,{type:'sine',gain:0.07,cutoff:1400});
-      voice(587,0.16,{type:'sawtooth',gain:0.05,when:0.02,cutoff:3200,rev:0.28});
-      voice(880,0.24,{type:'sawtooth',gain:0.045,when:0.10,cutoff:3600,rev:0.32});
+      voice(110,0.24,{type:'sine',gain:0.09,cutoff:700});
+      voice(165,0.22,{type:'triangle',gain:0.06,when:0.07,cutoff:800,rev:0.22});
     },
-    // レベルアップ：サブベースの一撃＋上昇アルペジオ＋高音の残響シマー
+    // レベルアップ：ズンと来る低音＋低めの上昇＋厚みの残響（高音なし）
     levelup(){
-      voice(98,0.55,{type:'sine',gain:0.09,cutoff:1000,rev:0.22});
-      [392,523,659,784,1047].forEach((f,i)=>voice(f,0.34,{type:'sawtooth',gain:0.05,when:i*0.08,cutoff:3800,q:4,rev:0.35}));
-      voice(1568,0.55,{type:'triangle',gain:0.03,when:0.42,cutoff:5200,rev:0.45});
+      voice(65,0.70,{type:'sine',gain:0.11,cutoff:650,rev:0.25});
+      [98,131,165,196].forEach((f,i)=>voice(f,0.40,{type:'triangle',gain:0.06,when:i*0.10,cutoff:850,q:2,rev:0.30}));
+      voice(82,0.80,{type:'sine',gain:0.05,when:0.40,cutoff:600,rev:0.30});
     },
-    error(){ voice(150,0.22,{type:'sawtooth',gain:0.05,glideTo:80,cutoff:900}); },
+    error(){ voice(140,0.24,{type:'sine',gain:0.06,glideTo:70,cutoff:700}); },
   };
 })();
 
