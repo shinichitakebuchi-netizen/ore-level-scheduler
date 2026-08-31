@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>THE SYSTEM — Mission Scheduler</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#04060c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="THE SYSTEM">
+<meta name="application-name" content="THE SYSTEM">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -171,6 +179,7 @@
   .batchbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:70;
     display:none;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:12px 14px;max-width:94vw}
   .batchbar.show{display:flex}
+  body.batch-active .wrap{padding-bottom:220px}
   .batchbar .cnt{font-family:'Orbitron';font-size:12px;letter-spacing:.1em;color:var(--cyan-hi);
     text-shadow:0 0 8px var(--glow);margin-right:2px}
   .batchbar button{font-family:'Orbitron';font-size:11px;font-weight:700;letter-spacing:.06em;padding:9px 11px;
@@ -748,11 +757,13 @@ function onCell(ds){
 function toggleBatch(){ restMode ? exitBatch() : enterBatch(); }
 function enterBatch(){
   restMode=true; sel.clear();
+  document.body.classList.add('batch-active');
   batchBtn.classList.add('batch-on'); batchBtn.textContent='SELECTING';
   batchBar.classList.add('show'); updateBatch(); render();
 }
 function exitBatch(){
   restMode=false; sel.clear();
+  document.body.classList.remove('batch-active');
   batchBtn.classList.remove('batch-on'); batchBtn.textContent='SELECT';
   batchBar.classList.remove('show'); render();
 }
