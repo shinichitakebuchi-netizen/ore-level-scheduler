@@ -298,6 +298,68 @@
   .soundtgl svg{width:15px;height:15px;display:block}
   .soundtgl.off{color:var(--muted);border-color:rgba(109,136,179,.4)}
 
+  /* ===== TITLE / HOME SCREEN ===== */
+  .title-screen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(1000px 820px at 50% 28%, #0b1a34, #04060c 72%);overflow:hidden;transition:opacity .45s ease}
+  .title-screen.hide{opacity:0;pointer-events:none}
+  .ts-bg{position:absolute;inset:0;overflow:hidden}
+  .ts-bg::before{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(53,182,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(53,182,255,.06) 1px,transparent 1px);
+    background-size:46px 46px;-webkit-mask-image:radial-gradient(720px 720px at 50% 40%,#000,transparent 80%);
+    mask-image:radial-gradient(720px 720px at 50% 40%,#000,transparent 80%);animation:griddrift 20s linear infinite}
+  @keyframes griddrift{to{background-position:0 46px,46px 0}}
+  .ts-bg::after{content:"";position:absolute;left:50%;top:58%;width:130vw;height:60vh;transform:translateX(-50%);
+    background:radial-gradient(closest-side, rgba(140,90,255,.14), transparent 70%);filter:blur(24px)}
+  .ts-parts{position:absolute;inset:0}
+  .ts-particle{position:absolute;bottom:-12px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);
+    animation-name:rise;animation-timing-function:linear;animation-iteration-count:infinite}
+  @keyframes rise{0%{transform:translateY(0);opacity:0}12%{opacity:.7}100%{transform:translateY(-110vh);opacity:0}}
+  .ts-inner{position:relative;text-align:center;padding:20px;animation:tsreveal .8s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes tsreveal{0%{opacity:0;transform:translateY(16px) scale(.98)}100%{opacity:1;transform:none}}
+  .ts-emblem{width:118px;height:118px;margin:0 auto 18px;filter:drop-shadow(0 0 16px var(--glow))}
+  .ts-emblem svg{width:100%;height:100%}
+  .ts-emblem .hex{fill:none;stroke:rgba(53,182,255,.5);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:spin 26s linear infinite}
+  .ts-emblem .hex2{fill:rgba(53,182,255,.05);stroke:var(--cyan);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:pulsehex 2.6s ease-in-out infinite}
+  .ts-emblem .chev{fill:none;stroke:var(--cyan-hi);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px var(--glow))}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulsehex{0%,100%{opacity:.5}50%{opacity:1}}
+  .ts-title{font-family:'Orbitron';font-weight:900;font-size:clamp(30px,9vw,60px);margin:0;color:#fff;
+    letter-spacing:.08em;text-shadow:0 0 22px var(--glow),0 0 60px rgba(53,182,255,.4)}
+  .ts-sub{font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:.5em;color:var(--cyan-hi);margin:8px 0 0;text-shadow:0 0 10px var(--glow)}
+  .ts-note{font-family:'Orbitron';font-size:10px;letter-spacing:.3em;color:var(--muted);margin:16px 0 24px;animation:blink 2s steps(1) infinite}
+  @keyframes blink{0%,62%{opacity:1}63%,100%{opacity:.32}}
+  .ts-menu{display:flex;flex-direction:column;gap:12px;width:min(280px,80vw);margin:0 auto}
+  .ts-btn{position:relative;font-family:'Orbitron';font-weight:700;letter-spacing:.14em;font-size:15px;padding:15px 18px;
+    color:var(--cyan-hi);background:rgba(53,182,255,.07);border:1px solid rgba(53,182,255,.5);
+    clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    text-shadow:0 0 10px var(--glow);transition:.15s;cursor:pointer}
+  .ts-btn small{display:block;font-family:'Rajdhani';font-size:10px;letter-spacing:.16em;color:var(--muted);margin-top:3px;text-shadow:none}
+  .ts-btn:hover{background:rgba(53,182,255,.2);box-shadow:0 0 18px var(--glow)}
+  .ts-btn.primary{color:#04060c;background:linear-gradient(100deg,var(--cyan),var(--cyan-hi));border-color:var(--cyan);text-shadow:none;box-shadow:0 0 22px var(--glow)}
+  .ts-btn.primary:hover{filter:brightness(1.08)}
+  .ts-ver{font-family:'Orbitron';font-size:9px;letter-spacing:.2em;color:#2f4468;margin-top:22px}
+  @media(prefers-reduced-motion:reduce){
+    .ts-bg::before,.ts-emblem .hex,.ts-emblem .hex2,.ts-note,.ts-inner,.ts-particle{animation:none}
+  }
+
+  /* ===== interior polish (ARISE-style HUD) ===== */
+  .panel::before{content:"";position:absolute;top:0;left:16px;right:16px;height:2px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.55;box-shadow:0 0 8px var(--glow)}
+  .nav,.today,.soundtgl,.rank{border-radius:0;
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+  .toggle,.addbtn,.batchbar button,.restbtns button,.pick button{border-radius:0;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+  .cell{background:linear-gradient(160deg,rgba(22,44,74,.32),rgba(9,17,33,.32))}
+  .cell:hover{background:linear-gradient(160deg,rgba(30,60,100,.4),rgba(12,22,40,.36))}
+  .xpbar::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(143,224,255,.35),transparent);
+    transform:translateX(-100%);animation:xpshine 3.4s ease-in-out infinite}
+  @keyframes xpshine{0%{transform:translateX(-100%)}55%,100%{transform:translateX(130%)}}
+  .modal .sub{border-bottom:1px solid rgba(53,182,255,.16);padding-bottom:12px}
+  .sect-label{position:relative;padding-left:12px}
+  .sect-label::before{content:"";position:absolute;left:0;top:1px;width:4px;height:11px;background:var(--cyan);box-shadow:0 0 8px var(--glow)}
+  @media(prefers-reduced-motion:reduce){ .xpbar::after{animation:none;opacity:0} }
+
   .footnote{text-align:center;font-family:'Orbitron';font-size:9px;color:#2f4468;letter-spacing:.2em;margin-top:22px}
   @media(max-width:640px){
     .wrap{padding:12px 10px 60px}
@@ -327,12 +389,36 @@
 </style>
 </head>
 <body>
+<!-- ===== TITLE / HOME SCREEN ===== -->
+<div class="title-screen" id="titleScreen">
+  <div class="ts-bg"><div class="ts-parts" id="tsParticles"></div></div>
+  <div class="ts-inner">
+    <div class="ts-emblem">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <polygon class="hex" points="60,10 104,35 104,85 60,110 16,85 16,35"/>
+        <polygon class="hex2" points="60,24 92,42 92,78 60,96 28,78 28,42"/>
+        <path class="chev" d="M46 64 L60 51 L74 64"/>
+        <path class="chev" d="M46 76 L60 63 L74 76"/>
+      </svg>
+    </div>
+    <h1 class="ts-title">THE SYSTEM</h1>
+    <p class="ts-sub">MISSION SCHEDULER</p>
+    <p class="ts-note">[ SYSTEM ONLINE ]</p>
+    <div class="ts-menu">
+      <button class="ts-btn primary" id="tsContinue">CONTINUE</button>
+      <button class="ts-btn" id="tsUpdate">UPDATE<small>最新版に更新</small></button>
+    </div>
+    <p class="ts-ver">v1.0</p>
+  </div>
+</div>
+
 <div class="wrap">
 
   <!-- ===== PLAYER STATUS ===== -->
   <header class="status panel">
     <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
     <button class="soundtgl" id="soundBtn" aria-label="Sound on/off"></button>
+    <button class="soundtgl" id="homeBtn" aria-label="Home" style="right:46px">⌂</button>
     <p class="sys-tag">⌜ THE SYSTEM ⌟ &nbsp;<span>PLAYER STATUS</span></p>
     <div class="statgrid">
       <div class="lvblock">
@@ -444,30 +530,60 @@ let clip = null;           // コピーしたタスク {title,category,xp}
    効果音（Web Audioで合成・外部ファイル不要）
    ========================================================= */
 const SFX = (()=>{
-  let ctx=null, muted=false;
+  let ctx=null, master=null, conv=null, revReturn=null, muted=false;
+  function impulse(dur,decay){
+    const rate=ctx.sampleRate, len=Math.floor(rate*dur), buf=ctx.createBuffer(2,len,rate);
+    for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
+      for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); }
+    return buf;
+  }
+  function build(){
+    master=ctx.createGain(); master.gain.value=0.85; master.connect(ctx.destination);
+    conv=ctx.createConvolver(); conv.buffer=impulse(1.5,2.6);          // 短いリバーブ
+    revReturn=ctx.createGain(); revReturn.gain.value=0.3;
+    conv.connect(revReturn).connect(master);
+  }
   function ac(){
-    if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
-    if(ctx && ctx.state==='suspended') ctx.resume();
+    if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } build(); }
+    if(ctx.state==='suspended') ctx.resume();
     return ctx;
   }
-  function tone(freq,dur,type,gain,when){
+  // 1音：オシレータ→ローパス→ゲイン→(master + リバーブ送り)
+  function voice(freq,dur,o){ o=o||{};
     const c=ac(); if(!c||muted) return;
-    const t0=c.currentTime+(when||0);
-    const o=c.createOscillator(), g=c.createGain();
-    o.type=type||'square'; o.frequency.value=freq;
-    g.gain.setValueAtTime(0.0001,t0);
-    g.gain.linearRampToValueAtTime(gain||0.05,t0+0.008);
+    const t0=c.currentTime+(o.when||0);
+    const osc=c.createOscillator(); osc.type=o.type||'sawtooth';
+    osc.frequency.setValueAtTime(freq,t0);
+    if(o.glideTo) osc.frequency.exponentialRampToValueAtTime(o.glideTo,t0+dur);
+    const flt=c.createBiquadFilter(); flt.type='lowpass';
+    flt.frequency.setValueAtTime(o.cutoff||2800,t0);
+    if(o.sweepTo) flt.frequency.exponentialRampToValueAtTime(o.sweepTo,t0+dur);
+    flt.Q.value = o.q!=null ? o.q : 5;
+    const g=c.createGain(); g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(o.gain||0.05,t0+(o.attack||0.008));
     g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    o.connect(g).connect(c.destination);
-    o.start(t0); o.stop(t0+dur+0.03);
+    osc.connect(flt).connect(g); g.connect(master);
+    if(o.rev && conv){ const rs=c.createGain(); rs.gain.value=o.rev; g.connect(rs); rs.connect(conv); }
+    osc.start(t0); osc.stop(t0+dur+0.06);
   }
   return {
     setMuted(m){ muted=m; },
     resume(){ ac(); },
-    tap(){ tone(680,0.055,'square',0.045); },
-    complete(){ tone(660,0.09,'triangle',0.06); tone(990,0.13,'triangle',0.055,0.07); },
-    levelup(){ [523,659,784,1046].forEach((f,i)=>tone(f,0.2,'sawtooth',0.055,i*0.09)); },
-    error(){ tone(160,0.14,'sawtooth',0.05); },
+    // UIタップ：ピッチが少し下がるシャープなブリップ
+    tap(){ voice(900,0.10,{type:'square',gain:0.05,glideTo:520,cutoff:3400,q:2}); },
+    // 達成：低音＋2音の確定音＋残響
+    complete(){
+      voice(196,0.20,{type:'sine',gain:0.07,cutoff:1400});
+      voice(587,0.16,{type:'sawtooth',gain:0.05,when:0.02,cutoff:3200,rev:0.28});
+      voice(880,0.24,{type:'sawtooth',gain:0.045,when:0.10,cutoff:3600,rev:0.32});
+    },
+    // レベルアップ：サブベースの一撃＋上昇アルペジオ＋高音の残響シマー
+    levelup(){
+      voice(98,0.55,{type:'sine',gain:0.09,cutoff:1000,rev:0.22});
+      [392,523,659,784,1047].forEach((f,i)=>voice(f,0.34,{type:'sawtooth',gain:0.05,when:i*0.08,cutoff:3800,q:4,rev:0.35}));
+      voice(1568,0.55,{type:'triangle',gain:0.03,when:0.42,cutoff:5200,rev:0.45});
+    },
+    error(){ voice(150,0.22,{type:'sawtooth',gain:0.05,glideTo:80,cutoff:900}); },
   };
 })();
 
@@ -868,6 +984,29 @@ soundBtn.onclick=()=>{
   if(!muted) SFX.tap();
 };
 
+/* --- タイトル / ホーム画面 --- */
+const titleScreen=$('titleScreen');
+function enterApp(){ titleScreen.classList.add('hide'); setTimeout(()=>{ titleScreen.style.display='none'; },450); }
+function showHome(){ titleScreen.style.display='flex'; requestAnimationFrame(()=>titleScreen.classList.remove('hide')); }
+function forceUpdate(){ location.href = location.href.split('?')[0] + '?v=' + Date.now(); }  // キャッシュ回避で最新版を再取得
+function initParticles(){
+  const box=$('tsParticles'); if(!box) return;
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for(let i=0;i<16;i++){
+    const p=document.createElement('span'); p.className='ts-particle';
+    const s=2+Math.random()*3;
+    p.style.left=(Math.random()*100)+'%';
+    p.style.width=p.style.height=s+'px';
+    p.style.animationDuration=(6+Math.random()*7)+'s';
+    p.style.animationDelay=(-Math.random()*10)+'s';
+    p.style.opacity=String(.3+Math.random()*.5);
+    box.appendChild(p);
+  }
+}
+$('tsContinue').onclick=enterApp;
+$('tsUpdate').onclick=forceUpdate;
+$('homeBtn').onclick=showHome;
+
 /* 初回サンプル（保存が空のときだけ・together強調のデモ含む） */
 function seedIfEmpty(){
   if(state.missions.length || Object.keys(state.rest).length) return;
@@ -887,6 +1026,7 @@ load();
 seedIfEmpty();
 lastLevel = progress().level;
 render();
+initParticles();
 </script>
 </body>
 </html>
