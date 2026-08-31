@@ -129,8 +129,7 @@
   .cell.c-pink  .dnum{color:var(--sun)}
   .cell.c-blue  .dnum{color:var(--sat)}
   .cell.c-today .dnum{color:var(--cyan-hi)}
-  .hol{font-size:9px;font-weight:600;color:var(--sun);line-height:1.05;margin-top:1px;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hol{font-size:12px;line-height:1;margin-top:1px;color:var(--sun);text-shadow:0 0 6px rgba(255,109,179,.5)}
   /* 自分とパートナーの休みが重なる日を強調 */
   .cell.together{
     background:linear-gradient(160deg,rgba(255,109,179,.16),rgba(52,229,164,.13));
@@ -212,8 +211,7 @@
   .wcol .whd b{display:block;font-size:16px;color:var(--text)}
   .wcol .whd.c-pink,.wcol .whd.c-pink b{color:var(--sun)}
   .wcol .whd.c-blue,.wcol .whd.c-blue b{color:var(--sat)}
-  .whol{font-family:'Rajdhani';font-size:9px;font-weight:600;color:var(--sun);margin-top:2px;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .whol{font-size:13px;line-height:1;color:var(--sun);margin-top:2px;text-shadow:0 0 6px rgba(255,109,179,.5)}
   .wm{font-size:12px;padding:4px 5px;border-radius:3px;margin-bottom:4px;line-height:1.15;
     border-left:3px solid var(--work);background:rgba(53,182,255,.08)}
   .wm.private{border-left-color:var(--private);background:rgba(181,124,255,.08)}
@@ -609,7 +607,7 @@ function renderMonth(){
     const dots = ms.slice(0,8).map(x=>`<span class="dot ${x.category}${x.done?' done':''}"></span>`).join('');
     html += `<div class="cell ${inMonth?'':'dim'} ${isToday?'today':''} ${cc} ${restClass} ${sel.has(ds)?'sel':''}" data-d="${ds}">
       <div class="dnum">${d.getDate()}</div>
-      ${hol?`<div class="hol">${escapeHtml(hol)}</div>`:''}
+      ${hol?'<div class="hol">◇</div>':''}
       <div class="dots">${dots}</div>
       ${ms.length?`<span class="count">${ms.filter(x=>x.done).length}/${ms.length}</span>`:''}
     </div>`;
@@ -640,7 +638,7 @@ function renderWeek(){
     else { if(rst.mine) rest += '<span class="wr mine">MY REST</span>'; if(rst.partner) rest += '<span class="wr partner">PARTNER</span>'; }
     const items = ms.map(x=>`<div class="wm ${x.category}${x.done?' done':''}">${escapeHtml(x.title)}</div>`).join('');
     html += `<div class="wcol ${isToday?'today':''} ${restClass} ${sel.has(ds)?'sel':''}" data-d="${ds}">
-      <div class="whd ${cc}">${WD[i]}<b>${d.getDate()}</b>${hol?`<div class="whol">${escapeHtml(hol)}</div>`:''}</div>
+      <div class="whd ${cc}">${WD[i]}<b>${d.getDate()}</b>${hol?'<div class="whol">◇</div>':''}</div>
       ${rest}${items || '<div style="text-align:center;color:#2f4468;font-family:Orbitron;font-size:9px;padding:8px 0">—</div>'}
     </div>`;
   }
