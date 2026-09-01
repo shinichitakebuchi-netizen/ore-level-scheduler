@@ -348,6 +348,28 @@
   #tsUpdate{color:#e0c8ff;border-color:rgba(181,124,255,.6);background:rgba(181,124,255,.08);text-shadow:0 0 10px rgba(181,124,255,.5)}
   #tsUpdate:hover{background:rgba(181,124,255,.22);box-shadow:0 0 18px rgba(181,124,255,.5)}
   .ts-ver{font-family:'Orbitron';font-size:9px;letter-spacing:.2em;color:#2f4468;margin-top:22px}
+  /* お知らせボタン */
+  .ts-news{position:absolute;top:16px;right:16px;z-index:5;width:38px;height:38px;display:grid;place-items:center;
+    border:1px solid rgba(var(--c),.5);border-radius:6px;background:rgba(var(--c),.08);color:var(--cyan-hi);cursor:pointer;
+    box-shadow:0 0 12px var(--glow)}
+  .ts-news:hover{background:rgba(var(--c),.2)}
+  .ts-news svg{width:20px;height:20px}
+  .ts-news::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
+    background:var(--gold);box-shadow:0 0 8px var(--gold);animation:blink 1.6s steps(1) infinite}
+  /* パッチノート */
+  #noticeOverlay{z-index:220}
+  #changelog{max-height:60vh;overflow:auto}
+  .cl-entry{border:1px solid rgba(var(--c),.25);border-radius:4px;padding:12px;margin-bottom:12px;background:rgba(9,17,33,.4)}
+  .cl-entry.latest{border-color:rgba(var(--c),.6);box-shadow:0 0 14px var(--glow)}
+  .cl-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .cl-ver{font-family:'Orbitron';font-weight:700;font-size:11px;letter-spacing:.08em;color:#04060c;
+    background:var(--cyan);padding:3px 9px;border-radius:3px;box-shadow:0 0 10px var(--glow)}
+  .cl-title{font-family:'Orbitron';font-weight:700;font-size:12px;color:var(--cyan-hi);letter-spacing:.05em;text-shadow:0 0 8px var(--glow)}
+  .cl-new{font-family:'Orbitron';font-size:9px;font-weight:700;letter-spacing:.1em;color:#1a0f02;
+    background:var(--gold);padding:2px 6px;border-radius:3px}
+  .cl-notes{list-style:none;margin:0;padding:0}
+  .cl-notes li{position:relative;padding-left:16px;font-size:14px;color:var(--text);line-height:1.5;margin-bottom:3px}
+  .cl-notes li::before{content:'▸';position:absolute;left:0;color:var(--cyan)}
   #settingsOverlay{z-index:210}
   .settings-data{display:flex;gap:10px;margin-bottom:12px}
   .settings-data button{flex:1;font-family:'Orbitron';font-size:12px;font-weight:700;letter-spacing:.08em;padding:14px;
@@ -429,6 +451,9 @@
 <!-- ===== TITLE / HOME SCREEN ===== -->
 <div class="title-screen" id="titleScreen">
   <div class="ts-bg"><div class="ts-parts" id="tsParticles"></div></div>
+  <button class="ts-news" id="tsNews" aria-label="お知らせ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.5 1.5 0 0 1-3 0"/></svg>
+  </button>
   <div class="ts-inner">
     <div class="ts-emblem" id="tsEmblem">
       <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
@@ -446,7 +471,7 @@
       <button class="ts-btn" id="tsUpdate">UPDATE</button>
       <button class="ts-btn" id="tsSettings">SETTINGS</button>
     </div>
-    <p class="ts-ver">v1.0</p>
+    <p class="ts-ver" id="tsVer">v1.0</p>
   </div>
 </div>
 
@@ -564,8 +589,18 @@
       <button id="tsExport">▽ EXPORT</button>
       <button id="tsImport">△ IMPORT</button>
     </div>
-    <p class="settings-note">端末間のコピーやバックアップ用に、データをJSONで書き出し／読み込みします。IMPORTは現在のデータを上書きします。</p>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </div>
+</div>
+
+<!-- ===== SYSTEM NOTICE (patch notes) ===== -->
+<div class="overlay" id="noticeOverlay">
+  <div class="modal panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="close" id="noticeClose">✕</button>
+    <h2>SYSTEM NOTICE</h2>
+    <div class="sub">PATCH NOTES</div>
+    <div id="changelog"></div>
   </div>
 </div>
 
@@ -594,6 +629,7 @@ let newCat = 'work', newXp = 25;
 let restMode = false;      // 複数選択（一括）モード
 let sel = new Set();       // 選択中の日付
 let clip = null;           // コピーしたタスク {title,category,xp}
+let clipFrom = null;       // コピー元の日付（同じ日には貼り付けを出さない）
 
 /* =========================================================
    効果音（Web Audioで合成・外部ファイル不要）
@@ -865,7 +901,6 @@ function openDay(ds, simple){
   showPasteStrip();
   mTitle.value='';
   overlay.classList.add('show');
-  if(!simple) setTimeout(()=>mTitle.focus(),50);
 }
 function closeModal(){ overlay.classList.remove('show'); selDate=null; }
 
@@ -1003,11 +1038,12 @@ function newId(){ return 'm'+Date.now()+Math.random().toString(36).slice(2,6); }
 function copyMission(id){
   const m=state.missions.find(x=>x.id===id); if(!m) return;
   clip={ title:m.title, category:m.category, xp:m.xp };
+  clipFrom = m.date;                 // コピー元の日を記録
   updateBatch(); showPasteStrip();
   toast('Copied: '+m.title);
 }
 function showPasteStrip(){
-  if(clip && selDate){
+  if(clip && selDate && selDate!==clipFrom){   // 別の日のときだけ表示
     pasteInfo.innerHTML = `<b>${clip.category.toUpperCase()} · +${clip.xp}</b>${escapeHtml(clip.title)}`;
     pasteStrip.classList.add('show');
   } else pasteStrip.classList.remove('show');
@@ -1055,7 +1091,7 @@ $('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   $('pickDiff').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); } });
 
 /* --- 効果音：クリック音（委任）＋ミュート切替 --- */
 const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
@@ -1137,6 +1173,54 @@ function closeSettings(){ settingsOverlay.classList.remove('show'); }
 $('tsSettings').onclick=openSettings;
 $('settingsClose').onclick=closeSettings;
 settingsOverlay.onclick=e=>{ if(e.target===settingsOverlay) closeSettings(); };
+
+/* --- バージョン表示（APP_VERSIONから自動反映） --- */
+$('tsVer').textContent = 'v'+APP_VERSION;
+
+/* --- SYSTEM NOTICE（パッチノート） ---
+   新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
+const CHANGELOG = [
+  { v:'v2', title:'AWAKENING UPDATE', notes:[
+    '??? — 隠しコマンドを追加（内容は非公開…自力で見つけよ）',
+    'TODAYで今日のミッションだけ表示し、その場でクリア',
+    'タスクのコピーを「別の日に貼り付け」専用に',
+    'SELECTの一括メニューを横スライド式に',
+    '効果音はタップ時のみ発音（スクロールでは鳴らない）',
+    'LV・ランクの下揃い＆サイズ調整',
+    'お知らせ（パッチノート）を追加',
+  ]},
+  { v:'v1.5', title:'SYSTEM EXPANSION', notes:[
+    'ゲーム風タイトル画面を追加',
+    'PWA対応：ホーム画面にインストール可能に',
+    '更新お知らせバナーを追加',
+    'SETTINGSにデータの書き出し／読み込み（バックアップ）',
+    '効果音を実装（合成音＋フリー素材の差し替えに対応）',
+    '休みの日を枠グローで表示、祝日を◇で表示',
+  ]},
+  { v:'v1', title:'FIRST GATE', notes:[
+    'ミッション消化でEXP獲得・レベルアップ',
+    '月／週カレンダー、仕事／プライベートのタスク',
+    '自分／パートナーの休みと、重なりの強調表示',
+    'ハンターランク（E〜S）',
+  ]},
+];
+function renderChangelog(){
+  changelogEl.innerHTML = CHANGELOG.map((e,i)=>`
+    <div class="cl-entry${i===0?' latest':''}">
+      <div class="cl-head">
+        <span class="cl-ver">${escapeHtml(e.v)}</span>
+        <span class="cl-title">${escapeHtml(e.title)}</span>
+        ${i===0?'<span class="cl-new">NEW</span>':''}
+      </div>
+      <ul class="cl-notes">${e.notes.map(n=>`<li>${escapeHtml(n)}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+const noticeOverlay=$('noticeOverlay'), changelogEl=$('changelog');
+function openNotice(){ renderChangelog(); noticeOverlay.classList.add('show'); }
+function closeNotice(){ noticeOverlay.classList.remove('show'); }
+$('tsNews').onclick=openNotice;
+$('noticeClose').onclick=closeNotice;
+noticeOverlay.onclick=e=>{ if(e.target===noticeOverlay) closeNotice(); };
 
 /* --- 更新お知らせ：起動時に最新版と比較し、新しければバナー表示 --- */
 const updateBanner=$('updateBanner');
