@@ -79,9 +79,9 @@
     color:var(--cyan-hi);text-shadow:0 0 10px var(--glow);margin:0 0 10px}
   .sys-tag span{color:var(--muted);text-shadow:none;letter-spacing:.3em}
   .statgrid{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-  .lvblock{display:flex;align-items:baseline;gap:10px}
-  .lv-label{font-family:'Orbitron';font-size:12px;color:var(--muted);letter-spacing:.2em}
-  .lv-num{font-family:'Orbitron';font-weight:900;font-size:52px;line-height:.9;color:#fff;
+  .lvblock{display:flex;align-items:flex-end;gap:10px}
+  .lv-label{font-family:'Orbitron';font-size:12px;color:var(--muted);letter-spacing:.2em;padding-bottom:4px}
+  .lv-num{font-family:'Orbitron';font-weight:900;font-size:60px;line-height:1;color:#fff;
     text-shadow:0 0 18px var(--glow),0 0 42px rgba(var(--c),.4)}
   .rank{font-family:'Orbitron';font-weight:900;font-size:26px;width:52px;height:52px;
     display:grid;place-items:center;color:var(--cyan-hi);
@@ -389,8 +389,8 @@
   .footnote{text-align:center;font-family:'Orbitron';font-size:9px;color:#2f4468;letter-spacing:.2em;margin-top:22px}
   @media(max-width:640px){
     .wrap{padding:12px 10px 60px}
-    .lv-num{font-size:44px}
-    .rank{width:46px;height:46px;font-size:22px}
+    .lv-num{font-size:54px}
+    .rank{width:48px;height:48px;font-size:22px}
     .period{font-size:18px}
     .nav,.toggle button,.today{padding:7px 9px;font-size:12px}
     .nav{width:34px}
@@ -404,11 +404,17 @@
     .wcol .whd b{display:inline;font-size:22px}
     .wcol .whol{display:inline;margin-left:auto}
     .wm{font-size:14px;padding:6px 8px}
-    .batchbar{gap:6px;padding:10px}
-    .batchbar button{padding:8px 9px;font-size:10px}
+    /* SELECT：下部メニューを横スライド（1行スワイプ）式に */
+    .batchbar{gap:8px;padding:10px 12px;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;
+      max-width:94vw;scroll-snap-type:x proximity;scrollbar-width:none}
+    .batchbar::-webkit-scrollbar{display:none}
+    .batchbar button{padding:9px 12px;font-size:11px;flex:0 0 auto;scroll-snap-align:center}
+    .batchbar .cnt{flex:0 0 auto}
+    body.batch-active .wrap{padding-bottom:120px}
   }
   @media(max-width:400px){
-    .lv-num{font-size:38px}
+    .lv-num{font-size:46px}
+    .rank{width:42px;height:42px;font-size:20px}
     .cell{min-height:56px}
     .hol{font-size:8px}
     .rest-tags{gap:2px}
@@ -1058,8 +1064,8 @@ function updateSoundBtn(){ soundBtn.innerHTML = muted?ICON_OFF:ICON_ON; soundBtn
 let muted=false;
 try{ muted = localStorage.getItem('sfx_muted')==='1'; }catch(e){}
 SFX.setMuted(muted); updateSoundBtn();
-document.addEventListener('pointerdown',e=>{
-  SFX.resume();
+document.addEventListener('pointerdown',()=>{ SFX.resume(); }, true);  // 解錠のみ（スクロール/軽い接触では鳴らさない）
+document.addEventListener('click',e=>{
   if(e.target.closest('button, .cell, .wcol')) SFX.tap();
 }, true);
 soundBtn.onclick=()=>{
