@@ -383,6 +383,29 @@
     box-shadow:0 0 16px var(--glow);cursor:pointer;margin-bottom:6px;
     clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
   .settings-install:hover{filter:brightness(1.08)}
+  /* キャラ選択（ヘルモード特典） */
+  .char-select{display:flex;gap:10px;margin-bottom:8px}
+  .char-opt{flex:1;font-family:'Orbitron';font-weight:700;font-size:20px;letter-spacing:.1em;padding:14px;cursor:pointer;
+    color:var(--muted);background:rgba(var(--c),.05);border:1px solid rgba(var(--c),.3);
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+  .char-opt small{display:block;font-family:'Orbitron';font-size:9px;letter-spacing:.2em;margin-top:5px;color:var(--muted)}
+  .char-opt.on{color:var(--cyan-hi);border-color:var(--cyan);background:rgba(var(--c),.18);box-shadow:0 0 14px var(--glow)}
+  .char-opt.on small{color:var(--cyan-hi)}
+  /* ステータス画面 */
+  #statusOverlay{z-index:215}
+  .hell .rank{cursor:pointer}
+  .status-modal{max-width:420px;padding:0;overflow:hidden}
+  .status-modal .close{background:rgba(4,6,12,.55);border-radius:4px;z-index:2}
+  .status-illust{position:relative;width:100%;background:#04060c}
+  .status-illust img{width:100%;display:block;max-height:52vh;object-fit:cover;object-position:top center}
+  .status-illust::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(4,6,12,.96))}
+  .status-body{padding:0 18px 20px;margin-top:-46px;position:relative;z-index:1}
+  .status-name{font-family:'Orbitron';font-weight:900;font-size:24px;color:#fff;letter-spacing:.08em;
+    text-shadow:0 0 16px var(--glow);margin-bottom:12px}
+  .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .status-cell{border:1px solid rgba(var(--c),.25);border-radius:4px;padding:10px 12px;background:rgba(9,17,33,.5)}
+  .status-cell .k{font-family:'Orbitron';font-size:9px;letter-spacing:.16em;color:var(--muted)}
+  .status-cell .v{font-family:'Orbitron';font-weight:700;font-size:18px;color:var(--cyan-hi);text-shadow:0 0 10px var(--glow);margin-top:3px}
   @media(prefers-reduced-motion:reduce){
     .ts-bg::before,.ts-emblem .hex,.ts-emblem .hex2,.ts-note,.ts-inner,.ts-particle{animation:none}
   }
@@ -586,6 +609,14 @@
       <button id="tsInstall" class="settings-install">▣ ホーム画面にインストール</button>
       <p class="settings-note">この端末にアプリとしてインストールします（Android/対応ブラウザ）。ボタンが出ないときは、ブラウザのメニューから「アプリをインストール／ホーム画面に追加」を選んでください。</p>
     </div>
+    <div id="charSection" style="display:none">
+      <div class="sub">CHARACTER</div>
+      <div class="char-select" id="charSelect">
+        <button class="char-opt" data-c="dark">闇<small>SHADOW</small></button>
+        <button class="char-opt" data-c="light">光<small>LIGHT</small></button>
+      </div>
+      <p class="settings-note">選んだキャラは、ランクアイコンをタップして開くステータス画面に表示されます。</p>
+    </div>
     <div class="sub">DATA BACKUP</div>
     <div class="settings-data">
       <button id="tsExport">▽ EXPORT</button>
@@ -606,6 +637,19 @@
   </div>
 </div>
 
+<!-- ===== STATUS (Hell Mode perk) ===== -->
+<div class="overlay" id="statusOverlay">
+  <div class="modal panel status-modal">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="close" id="statusClose">✕</button>
+    <div class="status-illust"><img id="statusImg" alt="character"></div>
+    <div class="status-body">
+      <div class="status-name" id="statusName">SHADOW</div>
+      <div class="status-grid" id="statusGrid"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="levelup" id="levelup"><div class="lu">LEVEL UP<small id="luLevel">LV.2</small></div></div>
 
@@ -615,7 +659,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 8;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 9;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1087,7 +1131,7 @@ $('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   $('pickDiff').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); } });
 
 /* --- 効果音：クリック音（委任）＋ミュート切替 --- */
 const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
@@ -1164,7 +1208,11 @@ $('importFile').addEventListener('change',e=>{ importData(e.target.files[0]); e.
 
 /* --- SETTINGS 開閉 --- */
 const settingsOverlay=$('settingsOverlay');
-function openSettings(){ settingsOverlay.classList.add('show'); }
+function openSettings(){
+  charSection.style.display = document.body.classList.contains('hell') ? '' : 'none';
+  updateCharUI();
+  settingsOverlay.classList.add('show');
+}
 function closeSettings(){ settingsOverlay.classList.remove('show'); }
 $('tsSettings').onclick=openSettings;
 $('settingsClose').onclick=closeSettings;
@@ -1191,6 +1239,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v2.2', title:'HELL MODE PERK', notes:[
+    'ヘルモード限定：SETTINGSでキャラ選択（闇／光）',
+    'ランクアイコンをタップでステータス画面＋イラスト表示',
+  ]},
   { v:'v2.1', title:'NOTICE FIX', notes:[
     'お知らせベルを「更新があるときだけ点滅 → 開くと止まる」に変更',
     'カレンダー側の重複ベルと更新バナーを撤去',
@@ -1283,6 +1335,41 @@ $('tsEmblem').addEventListener('click',()=>{
     toast(on ? '⚠ HELL MODE ⚠' : 'SYSTEM RESTORED');
   }
 });
+
+/* --- ヘルモード特典：キャラ選択＋ステータス画面 --- */
+const charSection=$('charSection'), charSelect=$('charSelect'), statusOverlay=$('statusOverlay'),
+      statusImg=$('statusImg'), statusName=$('statusName'), statusGrid=$('statusGrid');
+const CHAR_IMG={ dark:'char-dark.jpg', light:'char-light.jpg' };
+const CHAR_NAME={ dark:'SHADOW', light:'LIGHT' };
+let hellChar='dark';
+try{ hellChar = localStorage.getItem('hell_char') || 'dark'; }catch(e){}
+function updateCharUI(){
+  charSelect.querySelectorAll('.char-opt').forEach(b=>b.classList.toggle('on', b.dataset.c===hellChar));
+}
+function setChar(c){ hellChar=c; try{ localStorage.setItem('hell_char', c); }catch(e){} updateCharUI(); }
+charSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setChar(b.dataset.c));
+function openStatus(){
+  if(!document.body.classList.contains('hell')) return;   // ヘルモード限定の特典
+  statusImg.src = CHAR_IMG[hellChar];
+  statusName.textContent = CHAR_NAME[hellChar];
+  const p=progress();
+  const total=state.missions.length;
+  const rate = total ? Math.round(p.cleared/total*100) : 0;
+  statusGrid.innerHTML = [
+    ['LEVEL', p.level],
+    ['RANK', rankFor(p.level)],
+    ['EXP', p.into+' / '+p.need],
+    ['GATES CLEARED', p.cleared],
+    ['TOTAL MISSIONS', total],
+    ['CLEAR RATE', rate+'%'],
+  ].map(([k,v])=>`<div class="status-cell"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  statusOverlay.classList.add('show');
+}
+function closeStatus(){ statusOverlay.classList.remove('show'); }
+rank.onclick=openStatus;
+$('statusClose').onclick=closeStatus;
+statusOverlay.onclick=e=>{ if(e.target===statusOverlay) closeStatus(); };
+updateCharUI();
 
 /* 初回サンプル（保存が空のときだけ・together強調のデモ含む） */
 function seedIfEmpty(){
