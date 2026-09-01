@@ -197,6 +197,9 @@
   .batchbar .bclear{border-color:var(--danger);color:var(--danger)}
   .batchbar .bdone{background:var(--cyan);color:#04060c;border-color:var(--cyan)}
   .copybtn{color:var(--muted);font-size:15px;padding:0 4px}.copybtn:hover{color:var(--cyan-hi)}
+  .editbtn{color:var(--muted);font-size:15px;padding:0 4px}.editbtn:hover{color:var(--cyan-hi)}
+  .addbtn.cancel{margin-top:8px;background:transparent;color:var(--muted);border:1px solid rgba(var(--c),.3);box-shadow:none}
+  .addbtn.cancel:hover{filter:none;color:var(--cyan-hi);border-color:var(--cyan)}
   .pastestrip{display:none;align-items:center;gap:8px;margin:2px 0 6px;padding:8px 10px;
     border:1px dashed rgba(181,124,255,.5);border-radius:4px;background:rgba(181,124,255,.06)}
   .pastestrip.show{display:flex}
@@ -385,7 +388,7 @@
   .settings-install:hover{filter:brightness(1.08)}
   /* キャラ選択（ヘルモード特典） */
   .char-select{display:flex;gap:10px;margin-bottom:8px}
-  .char-opt{flex:1;font-family:'Orbitron';font-weight:700;font-size:20px;letter-spacing:.1em;padding:14px;cursor:pointer;
+  .char-opt{flex:1;font-family:'Orbitron';font-weight:700;font-size:15px;letter-spacing:.1em;padding:16px;cursor:pointer;
     color:var(--muted);background:rgba(var(--c),.05);border:1px solid rgba(var(--c),.3);
     clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
   .char-opt small{display:block;font-family:'Orbitron';font-size:9px;letter-spacing:.2em;margin-top:5px;color:var(--muted)}
@@ -471,7 +474,7 @@
 <!-- ===== TITLE / HOME SCREEN ===== -->
 <div class="title-screen" id="titleScreen">
   <div class="ts-bg"><div class="ts-parts" id="tsParticles"></div></div>
-  <button class="ts-news" id="tsNews" aria-label="お知らせ">
+  <button class="ts-news" id="tsNews" aria-label="Notice">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.5 21a1.5 1.5 0 0 1-3 0"/></svg>
   </button>
   <div class="ts-inner">
@@ -568,7 +571,7 @@
       <button id="pasteHereBtn">⧉ PASTE HERE</button>
     </div>
 
-    <div class="sect-label">NEW MISSION</div>
+    <div class="sect-label" id="addLabel">NEW MISSION</div>
     <div class="addform">
       <input type="text" id="mTitle" placeholder="Mission name..." maxlength="60" autocomplete="off">
       <div class="pick cat" id="pickCat">
@@ -582,6 +585,7 @@
         <button data-v="100">EXTRA · 100</button>
       </div>
       <button class="addbtn" id="addBtn">ACCEPT MISSION</button>
+      <button class="addbtn cancel" id="cancelEditBtn" style="display:none">CANCEL</button>
     </div>
     </div>
   </div>
@@ -606,16 +610,16 @@
     <h2>SETTINGS</h2>
     <div id="installSection" style="display:none">
       <div class="sub">APP</div>
-      <button id="tsInstall" class="settings-install">▣ ホーム画面にインストール</button>
-      <p class="settings-note">この端末にアプリとしてインストールします（Android/対応ブラウザ）。ボタンが出ないときは、ブラウザのメニューから「アプリをインストール／ホーム画面に追加」を選んでください。</p>
+      <button id="tsInstall" class="settings-install">▣ INSTALL APP</button>
+      <p class="settings-note">Install this app to your device (Android / supported browsers). If the button doesn't appear, use your browser menu: "Install app" / "Add to Home screen".</p>
     </div>
     <div id="charSection" style="display:none">
       <div class="sub">CHARACTER</div>
       <div class="char-select" id="charSelect">
-        <button class="char-opt" data-c="dark">闇<small>SHADOW</small></button>
-        <button class="char-opt" data-c="light">光<small>LIGHT</small></button>
+        <button class="char-opt" data-c="dark">SHADOW</button>
+        <button class="char-opt" data-c="light">LIGHT</button>
       </div>
-      <p class="settings-note">選んだキャラは、ランクアイコンをタップして開くステータス画面に表示されます。</p>
+      <p class="settings-note">Your selected character appears on the status screen — tap the rank icon to open it.</p>
     </div>
     <div class="sub">DATA BACKUP</div>
     <div class="settings-data">
@@ -659,7 +663,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 9;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 11;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -670,6 +674,8 @@ let restMode = false;      // 複数選択（一括）モード
 let sel = new Set();       // 選択中の日付
 let clip = null;           // コピーしたタスク {title,category,xp}
 let clipFrom = null;       // コピー元の日付（同じ日には貼り付けを出さない）
+let editingId = null;      // 編集中のミッションID（nullなら新規追加）
+let modalSimple = false;   // TODAYの簡易表示か（rest/追加を隠す）
 
 /* =========================================================
    効果音（Web Audioで合成・外部ファイル不要）
@@ -930,6 +936,8 @@ function renderWeek(){
 /* ---- モーダル ---- */
 function openDay(ds, simple){
   selDate = ds;
+  modalSimple = !!simple;
+  endEdit();                       // 編集状態をリセット
   const d = new Date(ds+'T00:00:00');
   mDate.textContent = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
   const hn = holidayName(ds);
@@ -967,12 +975,14 @@ function renderMissionList(){
         <div class="m-title">${escapeHtml(m.title)}</div>
         <div class="m-meta"><span class="tag ${m.category}">${m.category.toUpperCase()}</span><span class="xpv">+${m.xp} EXP</span></div>
       </div>
+      <button class="editbtn" title="Edit">✎</button>
       <button class="copybtn" title="Copy">⧉</button>
       <button class="del">✕</button>
     </li>`).join('');
   mList.querySelectorAll('li').forEach(li=>{
     const id = li.dataset.id;
     li.querySelector('.chk').onclick = ()=>toggleDone(id);
+    li.querySelector('.editbtn').onclick = ()=>startEdit(id);
     li.querySelector('.copybtn').onclick = ()=>copyMission(id);
     li.querySelector('.del').onclick = ()=>deleteMission(id);
   });
@@ -981,9 +991,36 @@ function renderMissionList(){
 function addMission(){
   const t = mTitle.value.trim();
   if(!t){ toast('Enter a mission name'); mTitle.focus(); return; }
+  if(editingId){                                   // 編集を保存
+    const m = state.missions.find(x=>x.id===editingId);
+    if(m){ m.title=t; m.category=newCat; m.xp=newXp; }
+    save(); endEdit(); renderMissionList(); render(); toast('Mission updated');
+    return;
+  }
   state.missions.push({ id:'m'+Date.now()+Math.random().toString(36).slice(2,6),
     title:t, category:newCat, date:selDate, xp:newXp, done:false });
   save(); mTitle.value=''; renderMissionList(); render(); mTitle.focus();
+}
+function startEdit(id){
+  const m = state.missions.find(x=>x.id===id); if(!m) return;
+  editingId = id;
+  addSection.style.display = '';                    // TODAY簡易表示でも編集フォームを出す
+  mTitle.value = m.title; newCat = m.category; newXp = m.xp;
+  document.getElementById('pickCat').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===m.category));
+  document.getElementById('pickDiff').querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.v===m.xp));
+  addLabel.textContent = 'EDIT MISSION';
+  addBtn.textContent = 'SAVE CHANGES';
+  cancelEditBtn.style.display = '';
+  mTitle.focus();
+  addSection.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function endEdit(){
+  editingId = null;
+  addLabel.textContent = 'NEW MISSION';
+  addBtn.textContent = 'ACCEPT MISSION';
+  cancelEditBtn.style.display = 'none';
+  mTitle.value = '';
+  if(modalSimple) addSection.style.display = 'none';  // 簡易表示なら閉じ直す
 }
 function toggleDone(id){
   const m = state.missions.find(x=>x.id===id); if(!m) return;
@@ -1099,6 +1136,7 @@ const lvNum=$('lvNum'), xpInto=$('xpInto'), xpNeed=$('xpNeed'), xpFill=$('xpFill
   clearedNum=$('clearedNum'), rank=$('rank'), periodMain=$('periodMain'), periodSub=$('periodSub'),
   calBody=$('calBody'), overlay=$('overlay'), mDate=$('mDate'), mSub=$('mSub'), mList=$('mList'),
   mTitle=$('mTitle'), restMine=$('restMine'), restPartner=$('restPartner'), togetherNote=$('togetherNote'),
+  addLabel=$('addLabel'), addBtn=$('addBtn'), cancelEditBtn=$('cancelEditBtn'),
   restSection=$('restSection'), addSection=$('addSection'),
   toastEl=$('toast'), levelup=$('levelup'), luLevel=$('luLevel'),
   batchBtn=$('batchBtn'), batchBar=$('batchBar'), selCnt=$('selCnt'), bPaste=$('bPaste'),
@@ -1114,6 +1152,7 @@ overlay.onclick=e=>{ if(e.target===overlay) closeModal(); };
 restMine.onclick=()=>toggleRest('mine');
 restPartner.onclick=()=>toggleRest('partner');
 $('addBtn').onclick=addMission;
+cancelEditBtn.onclick=endEdit;
 $('batchBtn').onclick=toggleBatch;
 $('bMine').onclick=()=>applyRestBatch('mine');
 $('bPartner').onclick=()=>applyRestBatch('partner');
@@ -1188,7 +1227,7 @@ function exportData(){
 }
 function importData(file){
   if(!file) return;
-  if(!confirm('現在のデータを、読み込むファイルの内容で上書きします。よろしいですか？')) return;
+  if(!confirm('This will overwrite your current data with the imported file. Continue?')) return;
   const r=new FileReader();
   r.onload=()=>{
     try{
@@ -1226,7 +1265,7 @@ window.addEventListener('beforeinstallprompt',e=>{
   installSection.style.display='';
 });
 $('tsInstall').onclick=async ()=>{
-  if(!deferredPrompt){ toast('この端末では自動インストール不可'); return; }
+  if(!deferredPrompt){ toast('Install not available on this device'); return; }
   deferredPrompt.prompt();
   try{ await deferredPrompt.userChoice; }catch(e){}
   deferredPrompt=null; installSection.style.display='none';
@@ -1239,6 +1278,12 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v2.4', title:'EDIT MISSION', notes:[
+    'ミッションの編集機能を追加（✎から修正・保存）',
+  ]},
+  { v:'v2.3', title:'ENGLISH UI', notes:[
+    'お知らせ以外のUI表示を英語に統一',
+  ]},
   { v:'v2.2', title:'HELL MODE PERK', notes:[
     'ヘルモード限定：SETTINGSでキャラ選択（闇／光）',
     'ランクアイコンをタップでステータス画面＋イラスト表示',
