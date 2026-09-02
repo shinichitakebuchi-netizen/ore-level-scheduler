@@ -356,7 +356,9 @@
 
   /* ===== TITLE / HOME SCREEN ===== */
   .title-screen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(1000px 820px at 50% 28%, #0b1a34, #04060c 72%);overflow:hidden;transition:opacity .45s ease}
+    background:radial-gradient(1000px 820px at 50% 28%, #0b1a34, #04060c 72%);overflow:hidden;transition:opacity .45s ease;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  .ts-emblem{touch-action:manipulation}
   .title-screen.hide{opacity:0;pointer-events:none}
   .ts-bg{position:absolute;inset:0;overflow:hidden}
   .ts-bg::before{content:"";position:absolute;inset:0;
@@ -834,7 +836,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 20;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 21;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1597,6 +1599,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v3.7', title:'MODE FIX', notes:[
+    '長押しでタイトル文字が選択されて切替できない不具合を修正',
+    'モードをノーマル／ヘル／レトロの排他に（同時ONにならない）',
+  ]},
   { v:'v3.6', title:'PIXEL HEROES', notes:[
     'レトロのドットキャラを差し替え（♂／♀）',
     'ドットキャラの選択をSETTINGSからできるように',
@@ -1720,13 +1726,24 @@ async function checkUpdate(){
 
 /* --- 隠しコマンド：ホームのエンブレムを10回タップでヘルモード（紫）ON/OFF --- */
 function applyHell(on){
+  if(on) applyRetro(false);                       // ヘルON時はレトロを解除（排他）
   document.body.classList.toggle('hell', on);
   try{ localStorage.setItem('hell_mode', on?'1':'0'); if(on) localStorage.setItem('hell_unlocked','1'); }catch(e){}
   const note=document.querySelector('.ts-note');
-  if(note) note.textContent = on ? '[ MONARCH AWAKENED ]' : '[ SYSTEM ONLINE ]';
+  if(note) note.textContent = on ? '[ MONARCH AWAKENED ]' : (document.body.classList.contains('retro')?'[ RETRO ]':'[ SYSTEM ONLINE ]');
 }
-try{ if(localStorage.getItem('hell_mode')==='1'){ document.body.classList.add('hell');
-  const note=document.querySelector('.ts-note'); if(note) note.textContent='[ MONARCH AWAKENED ]'; } }catch(e){}
+try{
+  const hellSaved = localStorage.getItem('hell_mode')==='1';
+  const retroSaved = localStorage.getItem('retro_mode')==='1';
+  const note=document.querySelector('.ts-note');
+  if(retroSaved){                                 // 両方保存されていてもレトロ優先（排他）
+    document.body.classList.add('retro'); document.body.classList.remove('hell');
+    try{ localStorage.setItem('hell_mode','0'); }catch(e){}
+    SFX.setRetro(true); if(note) note.textContent='[ RETRO ]';
+  } else if(hellSaved){
+    document.body.classList.add('hell'); if(note) note.textContent='[ MONARCH AWAKENED ]';
+  }
+}catch(e){}
 let hellTaps=0, hellTimer=null;
 $('tsEmblem').style.cursor='pointer';
 $('tsEmblem').addEventListener('click',()=>{
@@ -1748,11 +1765,14 @@ function updateRetroUI(){ retroSelect.querySelectorAll('.char-opt').forEach(b=>b
 function setRetroChar(i){ retroChar=i; try{ localStorage.setItem('retro_char', i); }catch(e){} updateRetroUI(); refreshStatusImg(); }
 retroSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setRetroChar(+b.dataset.r));
 function applyRetro(on){
+  if(on) applyHell(false);                        // レトロON時はヘルを解除（排他）
   document.body.classList.toggle('retro', on);
   try{ localStorage.setItem('retro_mode', on?'1':'0'); }catch(e){}
   SFX.setRetro(on);
+  const note=document.querySelector('.ts-note');
+  if(note && !document.body.classList.contains('hell')) note.textContent = on ? '[ RETRO ]' : '[ SYSTEM ONLINE ]';
 }
-try{ if(localStorage.getItem('retro_mode')==='1'){ document.body.classList.add('retro'); SFX.setRetro(true); } }catch(e){}
+try{ if(localStorage.getItem('retro_mode')==='1'){ SFX.setRetro(true); } }catch(e){}
 let pressTimer=null;
 function pressStart(){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>{
   const on=!document.body.classList.contains('retro'); applyRetro(on);
