@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Press+Start+2P&family=VT323&family=DotGothic16&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#04060c;
@@ -36,7 +36,51 @@
     --danger:#ff5b6e;
     --gold:#ffcf5c;
   }
-  /* ===== HELL MODE（隠しコマンド：ホームのエンブレム10回タップ）===== */
+  /* ===== RETRO MODE（隠しコマンド：ホームのエンブレム10秒長押し）===== */
+  body.retro{ --c:80,255,150; --cyan:#54ff9c; --cyan-hi:#c8ffe0; --glow:rgba(80,255,150,.5); --sat:#54ff9c; --sun:#ff6b8a; }
+  body.retro, body.retro *{ font-family:'VT323','DotGothic16',monospace !important; }
+  body.retro{ font-size:17px }
+  body.retro .lv-num, body.retro .rank, body.retro .ts-title, body.retro .lu, body.retro .ru span,
+  body.retro .period, body.retro .status-name{ font-family:'Press Start 2P','DotGothic16',monospace !important; letter-spacing:0 !important }
+  body.retro .ts-title{ font-size:clamp(18px,6.5vw,34px); line-height:1.4 }
+  body.retro .lv-num{ font-size:38px }
+  body.retro *{ border-radius:0 !important }
+  body.retro img{ image-rendering:pixelated }
+  body.retro .panel{ box-shadow:0 0 0 2px var(--cyan), 0 0 22px var(--glow) }
+  body.retro::after{ content:"";position:fixed;inset:0;z-index:300;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);mix-blend-mode:multiply }
+  body.retro .cell, body.retro .wcol{ background:rgba(6,20,12,.5) }
+  @media(prefers-reduced-motion:reduce){ body.retro::after{opacity:.5} }
+  /* スマホのレトロ：太いPress Start 2Pをやめ、細いVT323で読みやすく */
+  @media(max-width:640px){
+    body.retro{ font-size:19px }
+    body.retro .ts-title, body.retro .period, body.retro .rank, body.retro .status-name{
+      font-family:'VT323','DotGothic16',monospace !important; letter-spacing:.5px !important }
+    body.retro .ts-title{ font-size:clamp(24px,7.5vw,34px); line-height:1.2 }
+    body.retro .period{ font-size:24px }
+    body.retro .lv-num{ font-size:30px }
+    body.retro .rank{ font-size:22px }
+    body.retro .substats,body.retro .cleared,body.retro .xprow,body.retro .sect-label{ font-size:14px }
+  }
+  /* 通常/ヘルのスマホ：字間を詰めて太字を一段軽く、読みやすく */
+  @media(max-width:640px){
+    body:not(.retro) .sys-tag{ letter-spacing:.18em }
+    body:not(.retro) .lv-num{ font-weight:700 }
+    body:not(.retro) .rank{ font-weight:700 }
+    body:not(.retro) .status-name{ font-weight:700 }
+    body:not(.retro) .substats,
+    body:not(.retro) .cleared,
+    body:not(.retro) .xprow,
+    body:not(.retro) .lv-label,
+    body:not(.retro) .sect-label,
+    body:not(.retro) .period,
+    body:not(.retro) .nav,
+    body:not(.retro) .today,
+    body:not(.retro) .toggle button{ letter-spacing:.05em }
+  }
+  @media(max-width:400px){
+    body:not(.retro) .sys-tag{ letter-spacing:.12em;font-size:10px }
+  }
   body.hell{ --c:168,85,247; --cyan:#a855f7; --cyan-hi:#d8b4fe; --sat:#c084fc; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
@@ -381,6 +425,13 @@
     clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
   .settings-data button:hover{background:rgba(var(--c),.18);box-shadow:0 0 14px var(--glow)}
   .settings-note{font-size:12px;color:var(--muted);line-height:1.5;margin:6px 0 0}
+  #restoreOverlay{z-index:222}
+  .reminder-row{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+  .reminder-row input[type=time]{flex:1;padding:10px 12px;font-family:'Rajdhani';font-size:16px;color:var(--text);
+    background:rgba(4,8,16,.6);border:1px solid rgba(var(--c),.35);border-radius:4px;outline:none;color-scheme:dark}
+  #reminderToggle{width:80px;font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:.06em;padding:10px;cursor:pointer;
+    color:var(--muted);background:rgba(var(--c),.05);border:1px solid rgba(var(--c),.3);border-radius:4px}
+  #reminderToggle.on{color:#04060c;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--glow)}
   .settings-install{width:100%;font-family:'Orbitron';font-size:12px;font-weight:700;letter-spacing:.08em;padding:14px;
     color:#04060c;background:linear-gradient(90deg,var(--cyan),var(--cyan-hi));border:1px solid var(--cyan);
     box-shadow:0 0 16px var(--glow);cursor:pointer;margin-bottom:6px;
@@ -698,12 +749,40 @@
       <p class="char-hint" id="charHint"></p>
       <p class="settings-note">Tap a type to select. Double-tap a type to switch ♂ / ♀. Open the status screen from the rank icon.</p>
     </div>
+    <div id="retroSection" style="display:none">
+      <div class="sub">PIXEL CHARACTER</div>
+      <div class="char-select" id="retroSelect">
+        <button class="char-opt" data-r="0">MALE<small>♂</small></button>
+        <button class="char-opt" data-r="1">FEMALE<small>♀</small></button>
+      </div>
+      <p class="settings-note">Open the status screen from the rank icon to see your pixel character.</p>
+    </div>
     <div class="sub">DATA BACKUP</div>
     <div class="settings-data">
       <button id="tsExport">▽ EXPORT</button>
       <button id="tsImport">△ IMPORT</button>
     </div>
+    <button class="settings-install" id="tsRestore" style="background:transparent;color:var(--cyan-hi);border:1px solid rgba(var(--c),.4);box-shadow:none">⟲ RESTORE BACKUP</button>
+    <p class="settings-note">The app auto-saves a daily snapshot on this device (last 7 days). For off-device safety, use EXPORT.</p>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
+
+    <div class="sub">REMINDER</div>
+    <div class="reminder-row">
+      <input type="time" id="reminderTime">
+      <button id="reminderToggle">OFF</button>
+    </div>
+    <p class="settings-note">Shows a reminder when you open the app after this time with missions still left today. Background push isn't available on static web (especially iOS).</p>
+  </div>
+</div>
+
+<!-- ===== RESTORE ===== -->
+<div class="overlay" id="restoreOverlay">
+  <div class="modal panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="close" id="restoreClose">✕</button>
+    <h2>RESTORE</h2>
+    <div class="sub">TAP A SNAPSHOT TO RESTORE</div>
+    <ul class="titles-list" id="restoreList"></ul>
   </div>
 </div>
 
@@ -755,7 +834,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 15;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 20;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -773,7 +852,7 @@ let modalSimple = false;   // TODAYの簡易表示か（rest/追加を隠す）
    効果音（Web Audioで合成・外部ファイル不要）
    ========================================================= */
 const SFX = (()=>{
-  let ctx=null, master=null, conv=null, revReturn=null, muted=false;
+  let ctx=null, master=null, conv=null, revReturn=null, muted=false, retro=false;
   const bufs={};   // 読み込んだ効果音ファイル（あれば合成音より優先）
   function impulse(dur,decay){
     const rate=ctx.sampleRate, len=Math.floor(rate*dur), buf=ctx.createBuffer(2,len,rate);
@@ -830,15 +909,20 @@ const SFX = (()=>{
   }
   return {
     setMuted(m){ muted=m; },
+    setRetro(r){ retro=r; },
     resume(){ ac(); },
     load,
-    // ファイルがあればそれを、無ければ低音の合成音を鳴らす
-    tap(){ if(playBuf('tap',0.8)) return; voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
+    // ファイルがあればそれを、無ければ合成音（レトロ時は8bit）
+    tap(){ if(playBuf('tap',0.8)) return;
+      if(retro){ voice(880,0.06,{type:'square',gain:0.05,cutoff:6000,q:0}); return; }
+      voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
     complete(){ if(playBuf('complete',0.9)) return;
+      if(retro){ voice(660,0.08,{type:'square',gain:0.05,cutoff:6000}); voice(988,0.10,{type:'square',gain:0.05,when:0.08,cutoff:6000}); return; }
       voice(110,0.24,{type:'sine',gain:0.09,cutoff:700});
       voice(165,0.22,{type:'triangle',gain:0.06,when:0.07,cutoff:800,rev:0.22});
     },
     levelup(){ if(playBuf('levelup',0.9)) return;
+      if(retro){ [523,659,784,1047,1319].forEach((f,i)=>voice(f,0.10,{type:'square',gain:0.05,when:i*0.08,cutoff:7000})); return; }
       voice(65,0.70,{type:'sine',gain:0.11,cutoff:650,rev:0.25});
       [98,131,165,196].forEach((f,i)=>voice(f,0.40,{type:'triangle',gain:0.06,when:i*0.10,cutoff:850,q:2,rev:0.30}));
       voice(82,0.80,{type:'sine',gain:0.05,when:0.40,cutoff:600,rev:0.30});
@@ -849,7 +933,16 @@ const SFX = (()=>{
 // フリー素材を使う場合はこの名前でリポジトリ直下に置く（無ければ合成音のまま）
 const SFX_FILES = { tap:'tap.mp3', complete:'complete.mp3', levelup:'levelup.mp3' };
 
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} backupNow(); }
+function backupNow(){
+  try{
+    localStorage.setItem('backup:'+today(), JSON.stringify({ t:Date.now(), state }));
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf('backup:')===0) keys.push(k); }
+    keys.sort();
+    while(keys.length>7){ localStorage.removeItem(keys.shift()); }   // 直近7日ぶんだけ保持
+  }catch(e){}
+}
 function load(){
   try{ const s = localStorage.getItem(KEY); if(s) state = JSON.parse(s); }catch(e){}
   if(!state.missions) state.missions = [];
@@ -929,7 +1022,7 @@ function colorClass(d, ds){
 /* ---- レベル計算 ---- */
 function needFor(level){ return 100 + (level-1)*50; }
 function progress(){
-  const total = state.missions.filter(m=>m.done).reduce((s,m)=>s+m.xp,0);
+  const total = state.missions.filter(m=>m.done).reduce((s,m)=>s+(m.earned||m.xp),0);
   let level=1, acc=0;
   while(total >= acc + needFor(level)){ acc += needFor(level); level++; }
   return { level, into: total-acc, need: needFor(level),
@@ -964,6 +1057,15 @@ function computeStreak(){
   }
   return streak;
 }
+/* ストリークに応じたXP倍率（適度・最大2倍） */
+function streakMult(){
+  const st=computeStreak();
+  if(st>=30) return 2.0;
+  if(st>=14) return 1.5;
+  if(st>=7)  return 1.25;
+  if(st>=3)  return 1.1;
+  return 1.0;
+}
 
 let lastLevel = 1;
 let lastRank = 'E';
@@ -976,8 +1078,8 @@ function renderStatus(animate){
   clearedNum.textContent = p.cleared;
   const r = rankFor(p.level);
   rank.textContent = r; rank.dataset.r = r;
-  const st=computeStreak(); const tp=todayProgress();
-  if(subStats) subStats.innerHTML = `STREAK <b>${st}</b> &nbsp;·&nbsp; TODAY <b>${tp.done}/${tp.total}</b>`;
+  const st=computeStreak(); const tp=todayProgress(); const mul=streakMult();
+  if(subStats) subStats.innerHTML = `STREAK <b>${st}</b> &nbsp;·&nbsp; TODAY <b>${tp.done}/${tp.total}</b>` + (mul>1?` &nbsp;·&nbsp; <b>×${mul} XP</b>`:'');
   if(animate && p.level > lastLevel){
     if(RANK_ORDER.indexOf(r) > RANK_ORDER.indexOf(lastRank)) showRankUp(r);  // ランク上昇はランクアップ演出
     else showLevelUp(p.level);
@@ -1157,10 +1259,12 @@ function endEdit(){
 }
 function toggleDone(id){
   const m = state.missions.find(x=>x.id===id); if(!m) return;
-  m.done = !m.done; save();
+  m.done = !m.done;
+  if(m.done){ m.earned = Math.round(m.xp * streakMult()); } else { delete m.earned; }
+  save();
   renderMissionList(); renderStatus(true);
   if(viewMode==='month') renderMonth(); else renderWeek();
-  if(m.done){ toast(`Mission cleared  ·  +${m.xp} EXP`); SFX.complete(); checkNewTitles(); }
+  if(m.done){ toast(`Mission cleared  ·  +${m.earned} EXP`); SFX.complete(); checkNewTitles(); }
 }
 function deleteMission(id){
   state.missions = state.missions.filter(x=>x.id!==id);
@@ -1313,7 +1417,7 @@ $('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   $('pickDiff').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); closeTitles(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); closeTitles(); closeRestore(); } });
 
 /* --- 効果音：クリック音（委任）＋ミュート切替 --- */
 const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
@@ -1392,13 +1496,85 @@ $('importFile').addEventListener('change',e=>{ importData(e.target.files[0]); e.
 const settingsOverlay=$('settingsOverlay');
 function openSettings(){
   charSection.style.display = document.body.classList.contains('hell') ? '' : 'none';
-  updateCharUI();
+  retroSection.style.display = document.body.classList.contains('retro') ? '' : 'none';
+  updateCharUI(); updateRetroUI();
   settingsOverlay.classList.add('show');
 }
 function closeSettings(){ settingsOverlay.classList.remove('show'); }
 $('tsSettings').onclick=openSettings;
 $('settingsClose').onclick=closeSettings;
 settingsOverlay.onclick=e=>{ if(e.target===settingsOverlay) closeSettings(); };
+
+/* --- 自動バックアップの復元 --- */
+const restoreOverlay=$('restoreOverlay'), restoreList=$('restoreList');
+function openRestore(){
+  const keys=[];
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf('backup:')===0) keys.push(k); }
+  keys.sort().reverse();
+  if(!keys.length){ restoreList.innerHTML='<div class="empty">NO BACKUP YET</div>'; }
+  else {
+    restoreList.innerHTML = keys.map(k=>{
+      let n=0; try{ n=(JSON.parse(localStorage.getItem(k)).state.missions||[]).length; }catch(e){}
+      return `<li class="ti unlocked" data-k="${k}"><div><span class="ti-en">${k.slice(7)}</span><span class="ti-jp">${n} missions</span></div><div class="ti-cond">RESTORE</div></li>`;
+    }).join('');
+    restoreList.querySelectorAll('li').forEach(li=>li.onclick=()=>restoreBackup(li.dataset.k));
+  }
+  restoreOverlay.classList.add('show');
+}
+function closeRestore(){ restoreOverlay.classList.remove('show'); }
+function restoreBackup(k){
+  if(!confirm('Restore this snapshot? Current data will be overwritten.')) return;
+  try{
+    const snap=JSON.parse(localStorage.getItem(k));
+    if(snap && snap.state){
+      state.missions = Array.isArray(snap.state.missions)? snap.state.missions : [];
+      state.rest = (snap.state.rest && typeof snap.state.rest==='object')? snap.state.rest : {};
+      save(); lastLevel=progress().level; render(); closeRestore(); closeSettings(); toast('Backup restored');
+    }
+  }catch(e){ toast('Restore failed'); }
+}
+$('tsRestore').onclick=openRestore;
+$('restoreClose').onclick=closeRestore;
+restoreOverlay.onclick=e=>{ if(e.target===restoreOverlay) closeRestore(); };
+
+/* --- リマインド（開いた時＆実行中タイマーで通知。静的Webの範囲） --- */
+const reminderTime=$('reminderTime'), reminderToggle=$('reminderToggle');
+let remOn=false, remTime='';
+try{ remOn = localStorage.getItem('reminder_on')==='1'; remTime = localStorage.getItem('reminder_time')||''; }catch(e){}
+reminderTime.value = remTime;
+function updateReminderUI(){ reminderToggle.textContent = remOn?'ON':'OFF'; reminderToggle.classList.toggle('on', remOn); }
+updateReminderUI();
+reminderTime.addEventListener('change',()=>{ remTime=reminderTime.value; try{localStorage.setItem('reminder_time',remTime);}catch(e){} scheduleReminder(); });
+reminderToggle.onclick=async ()=>{
+  remOn=!remOn;
+  if(remOn && 'Notification' in window && Notification.permission==='default'){ try{ await Notification.requestPermission(); }catch(e){} }
+  try{ localStorage.setItem('reminder_on', remOn?'1':'0'); }catch(e){}
+  updateReminderUI(); scheduleReminder();
+};
+function remLeftToday(){ const tp=todayProgress(); return tp.total>0 && tp.done<tp.total; }
+function fireReminder(){
+  if(!remLeftToday()) return;
+  if('Notification' in window && Notification.permission==='granted'){
+    try{ new Notification('THE SYSTEM', { body:'You still have missions left today.', icon:'icon-192.png' }); return; }catch(e){}
+  }
+  toast('Reminder: missions left today');
+}
+function maybeRemind(){
+  if(!remOn || !remTime) return;
+  let last=''; try{ last=localStorage.getItem('reminder_last')||''; }catch(e){}
+  const now=new Date(); const cur=pad(now.getHours())+':'+pad(now.getMinutes());
+  if(cur>=remTime && last!==today() && remLeftToday()){
+    fireReminder(); try{ localStorage.setItem('reminder_last', today()); }catch(e){}
+  }
+}
+let remTimer=null;
+function scheduleReminder(){
+  clearTimeout(remTimer);
+  if(!remOn || !remTime) return;
+  const parts=remTime.split(':'); const target=new Date(); target.setHours(+parts[0],+parts[1],0,0);
+  const now=new Date();
+  if(target>now) remTimer=setTimeout(maybeRemind, target-now);
+}
 
 /* --- Androidの1タップインストール（対応ブラウザのみボタン表示） --- */
 let deferredPrompt=null;
@@ -1421,6 +1597,25 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v3.6', title:'PIXEL HEROES', notes:[
+    'レトロのドットキャラを差し替え（♂／♀）',
+    'ドットキャラの選択をSETTINGSからできるように',
+  ]},
+  { v:'v3.5', title:'MOBILE READABLE', notes:[
+    '通常/ヘルモードのスマホ表示を調整（字間短縮・太字を一段軽く）',
+  ]},
+  { v:'v3.4', title:'RETRO READABLE', notes:[
+    'スマホのレトロ表示を読みやすく調整（見出しを細いドットフォントに）',
+  ]},
+  { v:'v3.3', title:'FULL PIXEL', notes:[
+    'レトロモードの全テキストをドットフォントに統一（日本語も対応）',
+  ]},
+  { v:'v3.2', title:'BATCH II', notes:[
+    'ストリークでXP倍率アップ（最大×2）',
+    '自動バックアップ（毎日ローカル保存・7日分）とSETTINGSから復元',
+    'リマインド時刻の設定（開いた時に未消化なら通知）',
+    '??? — もうひとつ隠しコマンドを追加（長く押し続けよ…）',
+  ]},
   { v:'v3.1', title:'TITLES', notes:[
     '称号を追加（獲得一覧＋装備選択、英語＋日本語ルビ）',
     '条件を満たすと解放。ステータスのTITLESから装備できる',
@@ -1545,6 +1740,27 @@ $('tsEmblem').addEventListener('click',()=>{
     toast(on ? '⚠ HELL MODE ⚠' : 'SYSTEM RESTORED');
   }
 });
+/* --- 隠しコマンド2：ホームのエンブレムを10秒長押しでレトロモード --- */
+let retroChar=0; try{ retroChar = +(localStorage.getItem('retro_char')||0)?1:0; }catch(e){}
+const RETRO_IMG=['retro-a.jpg','retro-b.jpg'];
+const retroSection=$('retroSection'), retroSelect=$('retroSelect');
+function updateRetroUI(){ retroSelect.querySelectorAll('.char-opt').forEach(b=>b.classList.toggle('on', +b.dataset.r===retroChar)); }
+function setRetroChar(i){ retroChar=i; try{ localStorage.setItem('retro_char', i); }catch(e){} updateRetroUI(); refreshStatusImg(); }
+retroSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setRetroChar(+b.dataset.r));
+function applyRetro(on){
+  document.body.classList.toggle('retro', on);
+  try{ localStorage.setItem('retro_mode', on?'1':'0'); }catch(e){}
+  SFX.setRetro(on);
+}
+try{ if(localStorage.getItem('retro_mode')==='1'){ document.body.classList.add('retro'); SFX.setRetro(true); } }catch(e){}
+let pressTimer=null;
+function pressStart(){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>{
+  const on=!document.body.classList.contains('retro'); applyRetro(on);
+  toast(on ? '▚ RETRO MODE ▞' : 'SYSTEM RESTORED');
+}, 10000); }
+function pressEnd(){ clearTimeout(pressTimer); }
+['pointerdown'].forEach(ev=>$('tsEmblem').addEventListener(ev,pressStart));
+['pointerup','pointerleave','pointercancel'].forEach(ev=>$('tsEmblem').addEventListener(ev,pressEnd));
 
 /* --- ヘルモード特典：キャラ選択（タイプ×性別）＋ステータス画面 --- */
 const charSection=$('charSection'), charSelect=$('charSelect'), charHint=$('charHint'),
@@ -1566,23 +1782,29 @@ function updateCharUI(){
 }
 function setChar(c){ hellChar=c; try{ localStorage.setItem('hell_char', c); }catch(e){} updateCharUI(); refreshStatusImg(); }
 function setGender(g){ hellGender=g; try{ localStorage.setItem('hell_gender', g); }catch(e){} updateCharUI(); refreshStatusImg(); }
-function refreshStatusImg(){ if(statusOverlay.classList.contains('show')){ statusImg.src=CHAR_IMG[hellChar][hellGender]; statusName.textContent=CHAR_NAME[hellChar]; } }
+function refreshStatusImg(){
+  if(!statusOverlay.classList.contains('show')) return;
+  if(document.body.classList.contains('retro')){ statusImg.src=RETRO_IMG[retroChar]; statusName.textContent='PIXEL HERO'; }
+  else if(document.body.classList.contains('hell')){ statusImg.src=CHAR_IMG[hellChar][hellGender]; statusName.textContent=CHAR_NAME[hellChar]; }
+}
 charSelect.querySelectorAll('.char-opt').forEach(b=>{
   b.onclick=()=>setChar(b.dataset.c);                              // シングルタップ＝タイプ選択
   b.ondblclick=()=>setGender(hellGender==='m'?'f':'m');            // ダブルタップ＝♂♀切替
 });
-statusImg.onclick=()=>setGender(hellGender==='m'?'f':'m');         // ステータスのイラストタップでも切替
+statusImg.onclick=()=>{                                            // イラストのタップ
+  if(document.body.classList.contains('retro')){ retroChar=retroChar?0:1; try{localStorage.setItem('retro_char',retroChar);}catch(e){} refreshStatusImg(); }
+  else setGender(hellGender==='m'?'f':'m');
+};
 function openStatus(){
   const hell = document.body.classList.contains('hell');
-  statusIllust.style.display = hell ? '' : 'none';     // イラストはヘルモードのみ
-  statusHint.style.display   = hell ? '' : 'none';
-  statusBody.classList.toggle('no-illust', !hell);
-  if(hell){
-    statusImg.src = CHAR_IMG[hellChar][hellGender];
-    statusName.textContent = CHAR_NAME[hellChar];
-  } else {
-    statusName.textContent = 'PLAYER STATUS';
-  }
+  const retroM = document.body.classList.contains('retro');
+  const showChar = hell || retroM;
+  statusIllust.style.display = showChar ? '' : 'none';   // イラストはヘル/レトロのみ
+  statusHint.style.display   = showChar ? '' : 'none';
+  statusBody.classList.toggle('no-illust', !showChar);
+  if(retroM){ statusImg.src=RETRO_IMG[retroChar]; statusName.textContent='PIXEL HERO'; statusHint.textContent='tap to switch character'; }
+  else if(hell){ statusImg.src=CHAR_IMG[hellChar][hellGender]; statusName.textContent=CHAR_NAME[hellChar]; statusHint.textContent='tap the character to switch ♂ / ♀'; }
+  else { statusName.textContent='PLAYER STATUS'; }
   const p=progress();
   const total=state.missions.length;
   const rate = total ? Math.round(p.cleared/total*100) : 0;
@@ -1593,6 +1815,7 @@ function openStatus(){
     ['NEXT RANK', nextRankText(p.level)],
     ['GATES CLEARED', p.cleared],
     ['STREAK', computeStreak()],
+    ['XP BONUS', '×'+streakMult()],
     ['TOTAL MISSIONS', total],
     ['CLEAR RATE', rate+'%'],
   ].map(([k,v])=>`<div class="status-cell"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
@@ -1719,6 +1942,8 @@ SFX.load(SFX_FILES);   // 音ファイルがあれば読み込む（無ければ
 checkUpdate();          // 新バージョンがあれば「更新あり」バナーを表示
 initTitlesSeen();       // 称号の既得ベースライン（初回のみ）
 checkNewTitles();       // 日付変化などで新たに達成した称号を通知
+maybeRemind();          // リマインド時刻を過ぎて未消化なら通知
+scheduleReminder();     // 実行中はリマインド時刻にタイマー
 </script>
 </body>
 </html>
