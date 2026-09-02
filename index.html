@@ -398,6 +398,68 @@
   .char-hint b{color:var(--cyan-hi);font-size:14px;margin-left:4px}
   .status-illust img{cursor:pointer}
   .status-hint{font-family:'Orbitron';font-size:9px;letter-spacing:.14em;color:var(--muted);text-align:center;margin-top:12px}
+  .status-body.no-illust{margin-top:0;padding-top:20px}
+  /* 称号 */
+  .status-title{text-align:center;margin:-4px 0 12px}
+  .status-title .tt-en{font-family:'Orbitron';font-weight:700;font-size:14px;color:var(--cyan-hi);text-shadow:0 0 10px var(--glow)}
+  .status-title .tt-jp{display:block;font-family:'Rajdhani';font-weight:600;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+  .status-title.none{font-family:'Orbitron';font-size:10px;color:var(--muted);letter-spacing:.2em}
+  .titles-btn{display:block;width:100%;margin-top:12px;font-family:'Orbitron';font-size:11px;font-weight:700;letter-spacing:.1em;
+    padding:12px;color:var(--cyan-hi);background:rgba(var(--c),.06);border:1px solid rgba(var(--c),.4);cursor:pointer;
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+  .titles-btn:hover{background:rgba(var(--c),.18);box-shadow:0 0 12px var(--glow)}
+  #titlesOverlay{z-index:220}
+  .titles-list{list-style:none;margin:0;padding:0;max-height:62vh;overflow:auto}
+  .titles-list .ti{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:6px;
+    border:1px solid rgba(var(--c),.18);border-radius:4px;background:rgba(9,17,33,.4)}
+  .titles-list .ti.locked{opacity:.5}
+  .titles-list .ti.unlocked{cursor:pointer;border-color:rgba(var(--c),.4)}
+  .titles-list .ti.unlocked:hover{background:rgba(var(--c),.12)}
+  .titles-list .ti.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(255,207,92,.4)}
+  .ti-en{font-family:'Orbitron';font-weight:700;font-size:14px;color:var(--text)}
+  .ti-jp{display:block;font-family:'Rajdhani';font-weight:600;font-size:12px;color:var(--muted);margin-top:1px}
+  .ti-cond{font-family:'Orbitron';font-size:9px;letter-spacing:.08em;color:var(--muted);text-align:right;flex:0 0 auto;white-space:nowrap}
+  .ti.unlocked .ti-cond{color:var(--cyan-hi)}
+  .ti.sel .ti-cond{color:var(--gold)}
+  /* サブステータス（ストリーク/今日進捗） */
+  .substats{font-family:'Orbitron';font-size:11px;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+  .substats b{color:var(--cyan-hi);text-shadow:0 0 8px var(--glow)}
+  /* クイック追加 */
+  .quick-add{display:flex;gap:8px;margin-bottom:10px}
+  .quick-add input{flex:1;padding:11px 12px;font-family:'Rajdhani';font-size:16px;color:var(--text);
+    background:rgba(4,8,16,.6);border:1px solid rgba(var(--c),.35);border-radius:4px;outline:none}
+  .quick-add input:focus{border-color:var(--cyan);box-shadow:0 0 12px var(--glow)}
+  .quick-add input::placeholder{color:#41567a}
+  .quick-add button{width:48px;font-family:'Orbitron';font-weight:700;font-size:20px;color:#04060c;
+    background:linear-gradient(90deg,var(--cyan),var(--cyan-hi));border:1px solid var(--cyan);border-radius:4px;
+    box-shadow:0 0 14px var(--glow);cursor:pointer}
+  /* 編集：日付フィールド */
+  .edit-date{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .edit-date label{font-family:'Orbitron';font-size:10px;letter-spacing:.14em;color:var(--cyan)}
+  .edit-date input{flex:1;padding:9px 10px;font-family:'Rajdhani';font-size:15px;color:var(--text);
+    background:rgba(4,8,16,.6);border:1px solid rgba(var(--c),.35);border-radius:4px;outline:none;color-scheme:dark}
+  /* RANK UP 演出 */
+  .rankup{position:fixed;inset:0;z-index:95;display:none;place-items:center;pointer-events:none}
+  .rankup.show{display:grid;animation:fade .3s ease}
+  .rankup .ru{text-align:center;animation:pop 2s ease}
+  .rankup .ru small{display:block;font-family:'Orbitron';font-weight:700;font-size:20px;letter-spacing:.5em;
+    color:var(--cyan-hi);text-shadow:0 0 18px var(--glow);margin-bottom:6px}
+  .rankup .ru span{font-family:'Orbitron';font-weight:900;font-size:min(34vw,200px);line-height:.9;color:#fff;
+    text-shadow:0 0 40px var(--cyan),0 0 90px var(--glow)}
+  /* ヘルモード：ホームの禍々しい専用演出 */
+  .hell .title-screen{background:radial-gradient(1000px 820px at 50% 30%, #200a1e, #050208 74%)}
+  .hell .ts-bg::after{background:radial-gradient(closest-side, rgba(220,30,70,.20), transparent 70%);
+    filter:blur(26px);animation:hellpulse 2.8s ease-in-out infinite}
+  @keyframes hellpulse{0%,100%{opacity:.45;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}}
+  .hell .ts-emblem{filter:drop-shadow(0 0 18px rgba(220,40,90,.7))}
+  .hell .ts-emblem .hex{stroke:rgba(210,60,120,.6);animation-duration:9s}
+  .hell .ts-emblem .hex2{stroke:#e0559a;fill:rgba(200,30,90,.06)}
+  .hell .ts-emblem .chev{stroke:#ff5a8a;filter:drop-shadow(0 0 8px rgba(255,40,100,.9))}
+  .hell .ts-title{text-shadow:0 0 22px rgba(220,30,90,.85),0 0 70px rgba(140,0,70,.7);animation:hellglitch 2.4s steps(1) infinite}
+  @keyframes hellglitch{0%,90%,100%{transform:none;opacity:1}91%{transform:translate(-2px,1px);opacity:.8}
+    93%{transform:translate(3px,-1px)}95%{transform:translate(-1px,0)}97%{transform:translate(2px,1px);opacity:.9}}
+  .hell .ts-sub,.hell .ts-note{color:#ff6da0;text-shadow:0 0 10px rgba(220,40,100,.7)}
+  @media(prefers-reduced-motion:reduce){ .hell .ts-bg::after,.hell .ts-title{animation:none} }
   /* ステータス画面 */
   #statusOverlay{z-index:215}
   .hell .rank{cursor:pointer}
@@ -520,6 +582,7 @@
         <div class="xprow"><span>EXP</span><span><b id="xpInto">0</b> / <span id="xpNeed">100</span></span></div>
         <div class="xpbar"><div class="xpfill" id="xpFill"></div></div>
         <div class="cleared">GATES CLEARED &nbsp;<b id="clearedNum">0</b></div>
+        <div class="substats" id="subStats"></div>
       </div>
     </div>
   </header>
@@ -568,6 +631,10 @@
     </div>
 
     <div class="sect-label">MISSIONS</div>
+    <div class="quick-add" id="quickAdd">
+      <input type="text" id="qaTitle" placeholder="Quick add for today..." maxlength="60" autocomplete="off">
+      <button id="qaBtn" aria-label="add">＋</button>
+    </div>
     <ul class="mlist" id="mList"></ul>
     <div id="addSection">
     <div class="pastestrip" id="pasteStrip">
@@ -577,6 +644,10 @@
 
     <div class="sect-label" id="addLabel">NEW MISSION</div>
     <div class="addform">
+      <div class="edit-date" id="editDateRow" style="display:none">
+        <label>DATE</label>
+        <input type="date" id="editDate">
+      </div>
       <input type="text" id="mTitle" placeholder="Mission name..." maxlength="60" autocomplete="off">
       <div class="pick cat" id="pickCat">
         <button data-v="work" class="on">WORK</button>
@@ -652,17 +723,31 @@
   <div class="modal panel status-modal">
     <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
     <button class="close" id="statusClose">✕</button>
-    <div class="status-illust"><img id="statusImg" alt="character"></div>
-    <div class="status-body">
+    <div class="status-illust" id="statusIllust"><img id="statusImg" alt="character"></div>
+    <div class="status-body" id="statusBody">
       <div class="status-name" id="statusName">SHADOW</div>
+      <div class="status-title" id="statusTitle"></div>
       <div class="status-grid" id="statusGrid"></div>
-      <div class="status-hint">tap the character to switch ♂ / ♀</div>
+      <button class="titles-btn" id="titlesBtn">▤ TITLES</button>
+      <div class="status-hint" id="statusHint">tap the character to switch ♂ / ♀</div>
     </div>
+  </div>
+</div>
+
+<!-- ===== TITLES ===== -->
+<div class="overlay" id="titlesOverlay">
+  <div class="modal panel">
+    <span class="brk tl"></span><span class="brk tr"></span><span class="brk bl"></span><span class="brk br"></span>
+    <button class="close" id="titlesClose">✕</button>
+    <h2>TITLES</h2>
+    <div class="sub">TAP AN UNLOCKED TITLE TO EQUIP</div>
+    <ul class="titles-list" id="titlesList"></ul>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 <div class="levelup" id="levelup"><div class="lu">LEVEL UP<small id="luLevel">LV.2</small></div></div>
+<div class="rankup" id="rankup"><div class="ru"><small>RANK UP</small><span id="ruRank">S</span></div></div>
 
 <script>
 /* =========================================================
@@ -670,7 +755,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 13;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 15;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -854,8 +939,34 @@ function rankFor(lv){
   if(lv>=55) return 'S'; if(lv>=35) return 'A'; if(lv>=20) return 'B';
   if(lv>=10) return 'C'; if(lv>=5) return 'D'; return 'E';
 }
+const RANK_ORDER=['E','D','C','B','A','S'];
+const RANK_MIN={E:1,D:5,C:10,B:20,A:35,S:55};
+function totalXpForLevel(L){ let s=0; for(let i=1;i<L;i++) s+=needFor(i); return s; }
+function doneXpTotal(){ return state.missions.filter(m=>m.done).reduce((a,m)=>a+m.xp,0); }
+function nextRankText(level){
+  const idx=RANK_ORDER.indexOf(rankFor(level));
+  if(idx>=RANK_ORDER.length-1) return 'MAX (S)';
+  const nextR=RANK_ORDER[idx+1];
+  const need = totalXpForLevel(RANK_MIN[nextR]) - doneXpTotal();
+  return nextR+' in '+Math.max(0,need)+' XP';
+}
+function todayProgress(){ const ms=missionsOn(today()); return { done: ms.filter(m=>m.done).length, total: ms.length }; }
+/* ストリーク：ミッションを未クリアのまま翌日に持ち越さなければ継続（空の日・休みは途切れない） */
+function computeStreak(){
+  let streak=0; const d=new Date();
+  for(let i=0;i<400;i++){
+    const ms=missionsOn(fmt(d));
+    if(ms.length){
+      if(ms.every(m=>m.done)) streak++;
+      else if(i!==0) break;   // 今日(i=0)の未消化は途切れ扱いにしない
+    }
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
 
 let lastLevel = 1;
+let lastRank = 'E';
 function renderStatus(animate){
   const p = progress();
   lvNum.textContent = p.level;
@@ -865,8 +976,13 @@ function renderStatus(animate){
   clearedNum.textContent = p.cleared;
   const r = rankFor(p.level);
   rank.textContent = r; rank.dataset.r = r;
-  if(animate && p.level > lastLevel) showLevelUp(p.level);
-  lastLevel = p.level;
+  const st=computeStreak(); const tp=todayProgress();
+  if(subStats) subStats.innerHTML = `STREAK <b>${st}</b> &nbsp;·&nbsp; TODAY <b>${tp.done}/${tp.total}</b>`;
+  if(animate && p.level > lastLevel){
+    if(RANK_ORDER.indexOf(r) > RANK_ORDER.indexOf(lastRank)) showRankUp(r);  // ランク上昇はランクアップ演出
+    else showLevelUp(p.level);
+  }
+  lastLevel = p.level; lastRank = r;
 }
 
 /* ---- カレンダー描画 ---- */
@@ -951,6 +1067,7 @@ function openDay(ds, simple){
   mSub.innerHTML = WD[d.getDay()] + (hn? ` · <span class="hn">${escapeHtml(hn)}</span>`:'') + ' · MISSION LOG';
   restSection.style.display = simple ? 'none' : '';
   addSection.style.display  = simple ? 'none' : '';
+  quickAddEl.style.display    = simple ? 'flex' : 'none';   // TODAY簡易表示ではクイック追加を出す
   renderRestButtons();
   renderMissionList();
   showPasteStrip();
@@ -1000,7 +1117,7 @@ function addMission(){
   if(!t){ toast('Enter a mission name'); mTitle.focus(); return; }
   if(editingId){                                   // 編集を保存
     const m = state.missions.find(x=>x.id===editingId);
-    if(m){ m.title=t; m.category=newCat; m.xp=newXp; }
+    if(m){ m.title=t; m.category=newCat; m.xp=newXp; if(editDate.value) m.date=editDate.value; }
     save(); endEdit(); renderMissionList(); render(); toast('Mission updated');
     return;
   }
@@ -1008,11 +1125,19 @@ function addMission(){
     title:t, category:newCat, date:selDate, xp:newXp, done:false });
   save(); mTitle.value=''; renderMissionList(); render(); mTitle.focus();
 }
+function quickAdd(){
+  const t = qaTitle.value.trim();
+  if(!t){ qaTitle.focus(); return; }
+  state.missions.push({ id:'m'+Date.now()+Math.random().toString(36).slice(2,6),
+    title:t, category:'work', date:selDate, xp:25, done:false });   // 既定：WORK / NORMAL(25)
+  save(); qaTitle.value=''; renderMissionList(); render(); qaTitle.focus();
+}
 function startEdit(id){
   const m = state.missions.find(x=>x.id===id); if(!m) return;
   editingId = id;
   addSection.style.display = '';                    // TODAY簡易表示でも編集フォームを出す
   mTitle.value = m.title; newCat = m.category; newXp = m.xp;
+  editDateRow.style.display = ''; editDate.value = m.date;   // 日付変更フィールド
   document.getElementById('pickCat').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===m.category));
   document.getElementById('pickDiff').querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.v===m.xp));
   addLabel.textContent = 'EDIT MISSION';
@@ -1026,6 +1151,7 @@ function endEdit(){
   addLabel.textContent = 'NEW MISSION';
   addBtn.textContent = 'ACCEPT MISSION';
   cancelEditBtn.style.display = 'none';
+  editDateRow.style.display = 'none';
   mTitle.value = '';
   if(modalSimple) addSection.style.display = 'none';  // 簡易表示なら閉じ直す
 }
@@ -1034,7 +1160,7 @@ function toggleDone(id){
   m.done = !m.done; save();
   renderMissionList(); renderStatus(true);
   if(viewMode==='month') renderMonth(); else renderWeek();
-  if(m.done){ toast(`Mission cleared  ·  +${m.xp} EXP`); SFX.complete(); }
+  if(m.done){ toast(`Mission cleared  ·  +${m.xp} EXP`); SFX.complete(); checkNewTitles(); }
 }
 function deleteMission(id){
   state.missions = state.missions.filter(x=>x.id!==id);
@@ -1052,6 +1178,12 @@ function showLevelUp(lv){
   levelup.classList.add('show');
   SFX.levelup();
   setTimeout(()=>levelup.classList.remove('show'), 1500);
+}
+function showRankUp(r){
+  ruRank.textContent = r;
+  rankup.classList.add('show');
+  SFX.levelup();
+  setTimeout(()=>rankup.classList.remove('show'), 2200);
 }
 
 function move(dir){
@@ -1146,6 +1278,8 @@ const lvNum=$('lvNum'), xpInto=$('xpInto'), xpNeed=$('xpNeed'), xpFill=$('xpFill
   addLabel=$('addLabel'), addBtn=$('addBtn'), cancelEditBtn=$('cancelEditBtn'),
   restSection=$('restSection'), addSection=$('addSection'),
   toastEl=$('toast'), levelup=$('levelup'), luLevel=$('luLevel'),
+  rankup=$('rankup'), ruRank=$('ruRank'), subStats=$('subStats'),
+  quickAddEl=$('quickAdd'), qaTitle=$('qaTitle'), editDateRow=$('editDateRow'), editDate=$('editDate'),
   batchBtn=$('batchBtn'), batchBar=$('batchBar'), selCnt=$('selCnt'), bPaste=$('bPaste'),
   pasteStrip=$('pasteStrip'), pasteInfo=$('pasteInfo'), soundBtn=$('soundBtn');
 
@@ -1160,6 +1294,8 @@ restMine.onclick=()=>toggleRest('mine');
 restPartner.onclick=()=>toggleRest('partner');
 $('addBtn').onclick=addMission;
 cancelEditBtn.onclick=endEdit;
+$('qaBtn').onclick=quickAdd;
+qaTitle.addEventListener('keydown',e=>{ if(e.key==='Enter') quickAdd(); });
 $('batchBtn').onclick=toggleBatch;
 $('bMine').onclick=()=>applyRestBatch('mine');
 $('bPartner').onclick=()=>applyRestBatch('partner');
@@ -1177,7 +1313,7 @@ $('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   $('pickDiff').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); closeTitles(); } });
 
 /* --- 効果音：クリック音（委任）＋ミュート切替 --- */
 const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
@@ -1285,6 +1421,18 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v3.1', title:'TITLES', notes:[
+    '称号を追加（獲得一覧＋装備選択、英語＋日本語ルビ）',
+    '条件を満たすと解放。ステータスのTITLESから装備できる',
+  ]},
+  { v:'v3.0', title:'GROWTH UPDATE', notes:[
+    'クイック追加（今日のタスクを1行で即追加）',
+    '編集からミッションの日付変更が可能に',
+    '連続達成（ストリーク）とヘッダーに今日の進捗を表示',
+    'ステータス画面に次ランクまでの距離を追加。ノーマルでも閲覧可（キャラはヘル限定）',
+    'ランクアップ専用演出を追加',
+    'ヘルモードのホームを専用の禍々しい演出に',
+  ]},
   { v:'v2.6', title:'GENDER TOGGLE', notes:[
     '性別切替を「属性ボタンのダブルタップ」に変更（♂♀トグルは廃止）',
   ]},
@@ -1378,9 +1526,12 @@ async function checkUpdate(){
 /* --- 隠しコマンド：ホームのエンブレムを10回タップでヘルモード（紫）ON/OFF --- */
 function applyHell(on){
   document.body.classList.toggle('hell', on);
-  try{ localStorage.setItem('hell_mode', on?'1':'0'); }catch(e){}
+  try{ localStorage.setItem('hell_mode', on?'1':'0'); if(on) localStorage.setItem('hell_unlocked','1'); }catch(e){}
+  const note=document.querySelector('.ts-note');
+  if(note) note.textContent = on ? '[ MONARCH AWAKENED ]' : '[ SYSTEM ONLINE ]';
 }
-try{ if(localStorage.getItem('hell_mode')==='1') document.body.classList.add('hell'); }catch(e){}
+try{ if(localStorage.getItem('hell_mode')==='1'){ document.body.classList.add('hell');
+  const note=document.querySelector('.ts-note'); if(note) note.textContent='[ MONARCH AWAKENED ]'; } }catch(e){}
 let hellTaps=0, hellTimer=null;
 $('tsEmblem').style.cursor='pointer';
 $('tsEmblem').addEventListener('click',()=>{
@@ -1397,7 +1548,8 @@ $('tsEmblem').addEventListener('click',()=>{
 
 /* --- ヘルモード特典：キャラ選択（タイプ×性別）＋ステータス画面 --- */
 const charSection=$('charSection'), charSelect=$('charSelect'), charHint=$('charHint'),
-      statusOverlay=$('statusOverlay'), statusImg=$('statusImg'), statusName=$('statusName'), statusGrid=$('statusGrid');
+      statusOverlay=$('statusOverlay'), statusImg=$('statusImg'), statusName=$('statusName'), statusGrid=$('statusGrid'),
+      statusIllust=$('statusIllust'), statusBody=$('statusBody'), statusHint=$('statusHint');
 const CHAR_IMG={
   dark:  { m:'char-dark.jpg',  f:'char-dark-f.jpg'  },
   light: { m:'char-light.jpg', f:'char-light-f.jpg' },
@@ -1421,9 +1573,16 @@ charSelect.querySelectorAll('.char-opt').forEach(b=>{
 });
 statusImg.onclick=()=>setGender(hellGender==='m'?'f':'m');         // ステータスのイラストタップでも切替
 function openStatus(){
-  if(!document.body.classList.contains('hell')) return;   // ヘルモード限定の特典
-  statusImg.src = CHAR_IMG[hellChar][hellGender];
-  statusName.textContent = CHAR_NAME[hellChar];
+  const hell = document.body.classList.contains('hell');
+  statusIllust.style.display = hell ? '' : 'none';     // イラストはヘルモードのみ
+  statusHint.style.display   = hell ? '' : 'none';
+  statusBody.classList.toggle('no-illust', !hell);
+  if(hell){
+    statusImg.src = CHAR_IMG[hellChar][hellGender];
+    statusName.textContent = CHAR_NAME[hellChar];
+  } else {
+    statusName.textContent = 'PLAYER STATUS';
+  }
   const p=progress();
   const total=state.missions.length;
   const rate = total ? Math.round(p.cleared/total*100) : 0;
@@ -1431,10 +1590,13 @@ function openStatus(){
     ['LEVEL', p.level],
     ['RANK', rankFor(p.level)],
     ['EXP', p.into+' / '+p.need],
+    ['NEXT RANK', nextRankText(p.level)],
     ['GATES CLEARED', p.cleared],
+    ['STREAK', computeStreak()],
     ['TOTAL MISSIONS', total],
     ['CLEAR RATE', rate+'%'],
   ].map(([k,v])=>`<div class="status-cell"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  updateStatusTitle();
   statusOverlay.classList.add('show');
 }
 function closeStatus(){ statusOverlay.classList.remove('show'); }
@@ -1442,6 +1604,95 @@ rank.onclick=openStatus;
 $('statusClose').onclick=closeStatus;
 statusOverlay.onclick=e=>{ if(e.target===statusOverlay) closeStatus(); };
 updateCharUI();
+
+/* --- 称号システム（獲得一覧 B ＋ 装備選択 C）--- */
+const TITLES = [
+  {id:'w5',   en:'Awakened Worker',        jp:'覚醒せし労働者',     need:'WORK ×5',   ok:s=>s.work>=5},
+  {id:'w25',  en:'Task Slayer',            jp:'業務の斬り手',       need:'WORK ×25',  ok:s=>s.work>=25},
+  {id:'w50',  en:'Overtime Reaper',        jp:'残業の死神',         need:'WORK ×50',  ok:s=>s.work>=50},
+  {id:'w100', en:'Corporate Overlord',     jp:'社畜の頂点',         need:'WORK ×100', ok:s=>s.work>=100},
+  {id:'w250', en:'Deadline Sovereign',     jp:'納期の支配者',       need:'WORK ×250', ok:s=>s.work>=250},
+  {id:'p25',  en:'Keeper of the Daily Rite',jp:'日常儀式の守り手',   need:'PRIVATE ×25', ok:s=>s.priv>=25},
+  {id:'p50',  en:'Architect of Peace',     jp:'安寧の設計者',       need:'PRIVATE ×50', ok:s=>s.priv>=50},
+  {id:'p100', en:'Master of Off-Hours',    jp:'休息を統べる者',     need:'PRIVATE ×100',ok:s=>s.priv>=100},
+  {id:'s3',   en:'Ember of Will',          jp:'意志の残り火',       need:'STREAK 3',  ok:s=>s.streak>=3},
+  {id:'s7',   en:'Unbroken',               jp:'不撓',              need:'STREAK 7',  ok:s=>s.streak>=7},
+  {id:'s14',  en:'Chain of Discipline',    jp:'規律の鎖',           need:'STREAK 14', ok:s=>s.streak>=14},
+  {id:'s30',  en:'Eternal Flame',          jp:'絶えざる焔',         need:'STREAK 30', ok:s=>s.streak>=30},
+  {id:'s100', en:'The Undying',            jp:'不滅者',            need:'STREAK 100',ok:s=>s.streak>=100},
+  {id:'lv10', en:'Gate Breaker',           jp:'ゲートを砕く者',     need:'LV 10',     ok:s=>s.level>=10},
+  {id:'lv30', en:'Shadow Ascendant',       jp:'影の昇位者',         need:'LV 30',     ok:s=>s.level>=30},
+  {id:'rA',   en:"Monarch's Vessel",       jp:'君主の器',           need:'RANK A',    ok:s=>RANK_ORDER.indexOf(s.rank)>=RANK_ORDER.indexOf('A')},
+  {id:'rS',   en:'Sovereign of the System',jp:'システムの覇者',     need:'RANK S',    ok:s=>s.rank==='S'},
+  {id:'e10',  en:'Boss Hunter',            jp:'強敵狩り',           need:'EXTRA ×10', ok:s=>s.extra>=10},
+  {id:'e30',  en:'Calamity Ender',         jp:'災厄を終わらせし者', need:'EXTRA ×30', ok:s=>s.extra>=30},
+  {id:'d5',   en:'Blitz Conqueror',        jp:'電撃の征服者',       need:'5 IN A DAY',ok:s=>s.maxDay>=5},
+  {id:'hell', en:'Fallen Awakener',        jp:'堕ちた覚醒者',       need:'ENTER HELL',ok:s=>s.hellUnlocked},
+];
+const titlesOverlay=$('titlesOverlay'), titlesList=$('titlesList'), statusTitle=$('statusTitle');
+let selectedTitle=''; try{ selectedTitle = localStorage.getItem('selected_title') || ''; }catch(e){}
+function titleStats(){
+  const done = state.missions.filter(m=>m.done);
+  const byDay={}; done.forEach(m=>{ byDay[m.date]=(byDay[m.date]||0)+1; });
+  const p=progress();
+  let hellUnlocked=false; try{ hellUnlocked = localStorage.getItem('hell_unlocked')==='1'; }catch(e){}
+  return {
+    work: done.filter(m=>m.category==='work').length,
+    priv: done.filter(m=>m.category==='private').length,
+    extra: done.filter(m=>m.xp===100).length,
+    maxDay: Object.values(byDay).reduce((a,b)=>Math.max(a,b),0),
+    level: p.level, rank: rankFor(p.level), streak: computeStreak(), hellUnlocked,
+  };
+}
+function renderTitles(){
+  const s=titleStats();
+  titlesList.innerHTML = TITLES.map(t=>{
+    const ok=t.ok(s), sel=(selectedTitle===t.id);
+    return `<li class="ti ${ok?'unlocked':'locked'} ${sel?'sel':''}" data-id="${t.id}">
+      <div><span class="ti-en">${escapeHtml(t.en)}</span><span class="ti-jp">${escapeHtml(t.jp)}</span></div>
+      <div class="ti-cond">${ok?(sel?'EQUIPPED':'UNLOCKED'):escapeHtml(t.need)}</div>
+    </li>`;
+  }).join('');
+  titlesList.querySelectorAll('li.unlocked').forEach(li=>li.onclick=()=>selectTitle(li.dataset.id));
+}
+function selectTitle(id){
+  selectedTitle = (selectedTitle===id) ? '' : id;       // 同じものを再タップで解除
+  try{ localStorage.setItem('selected_title', selectedTitle); }catch(e){}
+  renderTitles(); updateStatusTitle();
+}
+function updateStatusTitle(){
+  const t=TITLES.find(x=>x.id===selectedTitle);
+  if(t && t.ok(titleStats())){
+    statusTitle.className='status-title';
+    statusTitle.innerHTML = `<span class="tt-en">${escapeHtml(t.en)}</span><span class="tt-jp">${escapeHtml(t.jp)}</span>`;
+  } else {
+    statusTitle.className='status-title none';
+    statusTitle.textContent = 'NO TITLE';
+  }
+}
+function openTitles(){ renderTitles(); titlesOverlay.classList.add('show'); }
+function closeTitles(){ titlesOverlay.classList.remove('show'); }
+$('titlesBtn').onclick=openTitles;
+$('titlesClose').onclick=closeTitles;
+titlesOverlay.onclick=e=>{ if(e.target===titlesOverlay) closeTitles(); };
+/* 新規獲得のお知らせ（起動時のベースライン化＋達成時チェック） */
+function initTitlesSeen(){
+  try{ if(localStorage.getItem('titles_seen')===null){
+    const s=titleStats();
+    localStorage.setItem('titles_seen', JSON.stringify(TITLES.filter(t=>t.ok(s)).map(t=>t.id)));
+  }}catch(e){}
+}
+function checkNewTitles(){
+  const s=titleStats();
+  let seen=[]; try{ seen=JSON.parse(localStorage.getItem('titles_seen')||'[]'); }catch(e){}
+  const nowU = TITLES.filter(t=>t.ok(s)).map(t=>t.id);
+  const fresh = nowU.filter(id=>!seen.includes(id));
+  if(fresh.length){
+    const t=TITLES.find(x=>x.id===fresh[0]);
+    toast('New title: '+t.en);
+    try{ localStorage.setItem('titles_seen', JSON.stringify(nowU)); }catch(e){}
+  }
+}
 
 /* 初回サンプル（保存が空のときだけ・together強調のデモ含む） */
 function seedIfEmpty(){
@@ -1461,10 +1712,13 @@ function seedIfEmpty(){
 load();
 seedIfEmpty();
 lastLevel = progress().level;
+lastRank = rankFor(progress().level);
 render();
 initParticles();
 SFX.load(SFX_FILES);   // 音ファイルがあれば読み込む（無ければ合成音）
 checkUpdate();          // 新バージョンがあれば「更新あり」バナーを表示
+initTitlesSeen();       // 称号の既得ベースライン（初回のみ）
+checkNewTitles();       // 日付変化などで新たに達成した称号を通知
 </script>
 </body>
 </html>
