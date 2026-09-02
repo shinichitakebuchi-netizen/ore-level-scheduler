@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Press+Start+2P&family=VT323&family=DotGothic16&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#04060c;
@@ -836,7 +836,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 23;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 24;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -912,6 +912,7 @@ const SFX = (()=>{
   return {
     setMuted(m){ muted=m; },
     setRetro(r){ retro=r; },
+    setHidden(h){ if(ctx && h){ try{ ctx.suspend(); }catch(e){} } },   // 非表示時は停止（電池節約）
     resume(){ ac(); },
     load,
     // レトロ時は必ず8bit合成音。それ以外はファイルがあればファイル、無ければ合成音
@@ -938,7 +939,11 @@ const SFX_FILES = { tap:'tap.mp3', complete:'complete.mp3', levelup:'levelup.mp3
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} backupNow(); }
 function backupNow(){
   try{
-    localStorage.setItem('backup:'+today(), JSON.stringify({ t:Date.now(), state }));
+    const now=Date.now();
+    const last=+(localStorage.getItem('backup_at')||0);
+    if(now-last < 120000) return;                 // 2分に1回まで（無駄な書き込み削減）
+    localStorage.setItem('backup:'+today(), JSON.stringify({ t:now, state }));
+    localStorage.setItem('backup_at', String(now));
     const keys=[];
     for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf('backup:')===0) keys.push(k); }
     keys.sort();
@@ -1420,6 +1425,7 @@ $('pickDiff').querySelectorAll('button').forEach(b=>b.onclick=()=>{
   b.classList.add('on'); newXp=parseInt(b.dataset.v,10);
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSettings(); closeNotice(); closeStatus(); closeTitles(); closeRestore(); } });
+document.addEventListener('visibilitychange',()=>{ try{ SFX.setHidden(document.hidden); }catch(e){} });   // 非表示で音停止
 
 /* --- 効果音：クリック音（委任）＋ミュート切替 --- */
 const ICON_ON  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a4.5 4.5 0 0 1 0 7"/></svg>';
@@ -1599,6 +1605,12 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v4.0', title:'OPTIMIZE', notes:[
+    '自動バックアップの書き込みを間引き（負荷軽減）',
+    '更新チェックを3時間に1回へ（通信・電池を節約）',
+    'ドット/日本語フォントはレトロ使用時のみ読込（初回を軽量化）',
+    'バックグラウンド時にサウンドを停止（電池節約）',
+  ]},
   { v:'v3.9', title:'RETRO TITLE', notes:[
     'レトロモード解放で称号「Pixel Wanderer / ドットの旅人」を追加',
   ]},
@@ -1715,9 +1727,12 @@ noticeOverlay.onclick=e=>{ if(e.target===noticeOverlay) closeNotice(); };
 /* --- 更新検知：新版があればホームのベルを点滅（開くと止まる） --- */
 async function checkUpdate(){
   try{
+    const last=+(localStorage.getItem('update_check_at')||0);
+    if(Date.now()-last < 3*3600*1000) return;     // 3時間に1回まで（無駄な通信削減）
     const res=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});
     if(!res.ok) return;
     const txt=await res.text();
+    localStorage.setItem('update_check_at', String(Date.now()));
     const m=txt.match(/const APP_VERSION\s*=\s*(\d+)/);
     if(!m) return;
     const latest=parseInt(m[1],10);
@@ -1745,7 +1760,7 @@ try{
   if(retroSaved){                                 // 両方保存されていてもレトロ優先（排他）
     document.body.classList.add('retro'); document.body.classList.remove('hell');
     try{ localStorage.setItem('hell_mode','0'); }catch(e){}
-    SFX.setRetro(true); if(note) note.textContent='[ RETRO ]';
+    SFX.setRetro(true); loadRetroFonts(); if(note) note.textContent='[ RETRO ]';
   } else if(hellSaved){
     document.body.classList.add('hell'); if(note) note.textContent='[ MONARCH AWAKENED ]';
   }
@@ -1771,8 +1786,15 @@ const retroSection=$('retroSection'), retroSelect=$('retroSelect');
 function updateRetroUI(){ retroSelect.querySelectorAll('.char-opt').forEach(b=>b.classList.toggle('on', +b.dataset.r===retroChar)); }
 function setRetroChar(i){ retroChar=i; try{ localStorage.setItem('retro_char', i); }catch(e){} updateRetroUI(); refreshStatusImg(); }
 retroSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setRetroChar(+b.dataset.r));
+let retroFontsLoaded=false;
+function loadRetroFonts(){
+  if(retroFontsLoaded) return; retroFontsLoaded=true;
+  const l=document.createElement('link'); l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DotGothic16&display=swap';
+  document.head.appendChild(l);
+}
 function applyRetro(on){
-  if(on) applyHell(false);                        // レトロON時はヘルを解除（排他）
+  if(on){ applyHell(false); loadRetroFonts(); }   // レトロON時はヘル解除＋フォント遅延読込
   document.body.classList.toggle('retro', on);
   try{ localStorage.setItem('retro_mode', on?'1':'0'); if(on) localStorage.setItem('retro_unlocked','1'); }catch(e){}
   SFX.setRetro(on);
