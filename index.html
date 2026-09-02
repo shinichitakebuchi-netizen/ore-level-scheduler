@@ -1786,10 +1786,9 @@ const retroSection=$('retroSection'), retroSelect=$('retroSelect');
 function updateRetroUI(){ retroSelect.querySelectorAll('.char-opt').forEach(b=>b.classList.toggle('on', +b.dataset.r===retroChar)); }
 function setRetroChar(i){ retroChar=i; try{ localStorage.setItem('retro_char', i); }catch(e){} updateRetroUI(); refreshStatusImg(); }
 retroSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setRetroChar(+b.dataset.r));
-let retroFontsLoaded=false;
 function loadRetroFonts(){
-  if(retroFontsLoaded) return; retroFontsLoaded=true;
-  const l=document.createElement('link'); l.rel='stylesheet';
+  if(document.getElementById('retroFonts')) return;   // 既に読み込み済みなら何もしない
+  const l=document.createElement('link'); l.id='retroFonts'; l.rel='stylesheet';
   l.href='https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=DotGothic16&display=swap';
   document.head.appendChild(l);
 }
