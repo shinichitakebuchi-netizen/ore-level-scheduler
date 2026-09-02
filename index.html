@@ -836,7 +836,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 21;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 22;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -914,17 +914,17 @@ const SFX = (()=>{
     setRetro(r){ retro=r; },
     resume(){ ac(); },
     load,
-    // ファイルがあればそれを、無ければ合成音（レトロ時は8bit）
-    tap(){ if(playBuf('tap',0.8)) return;
-      if(retro){ voice(880,0.06,{type:'square',gain:0.05,cutoff:6000,q:0}); return; }
+    // レトロ時は必ず8bit合成音。それ以外はファイルがあればファイル、無ければ合成音
+    tap(){ if(retro){ voice(880,0.06,{type:'square',gain:0.05,cutoff:6000,q:0}); return; }
+      if(playBuf('tap',0.8)) return;
       voice(200,0.09,{type:'sine',gain:0.06,glideTo:130,cutoff:900,q:1}); },
-    complete(){ if(playBuf('complete',0.9)) return;
-      if(retro){ voice(660,0.08,{type:'square',gain:0.05,cutoff:6000}); voice(988,0.10,{type:'square',gain:0.05,when:0.08,cutoff:6000}); return; }
+    complete(){ if(retro){ voice(660,0.08,{type:'square',gain:0.05,cutoff:6000}); voice(988,0.10,{type:'square',gain:0.05,when:0.08,cutoff:6000}); return; }
+      if(playBuf('complete',0.9)) return;
       voice(110,0.24,{type:'sine',gain:0.09,cutoff:700});
       voice(165,0.22,{type:'triangle',gain:0.06,when:0.07,cutoff:800,rev:0.22});
     },
-    levelup(){ if(playBuf('levelup',0.9)) return;
-      if(retro){ [523,659,784,1047,1319].forEach((f,i)=>voice(f,0.10,{type:'square',gain:0.05,when:i*0.08,cutoff:7000})); return; }
+    levelup(){ if(retro){ [523,659,784,1047,1319].forEach((f,i)=>voice(f,0.10,{type:'square',gain:0.05,when:i*0.08,cutoff:7000})); return; }
+      if(playBuf('levelup',0.9)) return;
       voice(65,0.70,{type:'sine',gain:0.11,cutoff:650,rev:0.25});
       [98,131,165,196].forEach((f,i)=>voice(f,0.40,{type:'triangle',gain:0.06,when:i*0.10,cutoff:850,q:2,rev:0.30}));
       voice(82,0.80,{type:'sine',gain:0.05,when:0.40,cutoff:600,rev:0.30});
@@ -1599,6 +1599,9 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v3.8', title:'RETRO SFX FIX', notes:[
+    'レトロ中は必ず8bit効果音になるよう修正（音ファイルより優先）',
+  ]},
   { v:'v3.7', title:'MODE FIX', notes:[
     '長押しでタイトル文字が選択されて切替できない不具合を修正',
     'モードをノーマル／ヘル／レトロの排他に（同時ONにならない）',
