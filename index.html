@@ -836,7 +836,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 22;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 23;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1599,6 +1599,9 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v3.9', title:'RETRO TITLE', notes:[
+    'レトロモード解放で称号「Pixel Wanderer / ドットの旅人」を追加',
+  ]},
   { v:'v3.8', title:'RETRO SFX FIX', notes:[
     'レトロ中は必ず8bit効果音になるよう修正（音ファイルより優先）',
   ]},
@@ -1758,6 +1761,7 @@ $('tsEmblem').addEventListener('click',()=>{
     const on=!document.body.classList.contains('hell');
     applyHell(on);
     toast(on ? '⚠ HELL MODE ⚠' : 'SYSTEM RESTORED');
+    if(on) checkNewTitles();
   }
 });
 /* --- 隠しコマンド2：ホームのエンブレムを10秒長押しでレトロモード --- */
@@ -1770,7 +1774,7 @@ retroSelect.querySelectorAll('.char-opt').forEach(b=>b.onclick=()=>setRetroChar(
 function applyRetro(on){
   if(on) applyHell(false);                        // レトロON時はヘルを解除（排他）
   document.body.classList.toggle('retro', on);
-  try{ localStorage.setItem('retro_mode', on?'1':'0'); }catch(e){}
+  try{ localStorage.setItem('retro_mode', on?'1':'0'); if(on) localStorage.setItem('retro_unlocked','1'); }catch(e){}
   SFX.setRetro(on);
   const note=document.querySelector('.ts-note');
   if(note && !document.body.classList.contains('hell')) note.textContent = on ? '[ RETRO ]' : '[ SYSTEM ONLINE ]';
@@ -1780,6 +1784,7 @@ let pressTimer=null;
 function pressStart(){ clearTimeout(pressTimer); pressTimer=setTimeout(()=>{
   const on=!document.body.classList.contains('retro'); applyRetro(on);
   toast(on ? '▚ RETRO MODE ▞' : 'SYSTEM RESTORED');
+  if(on) checkNewTitles();
 }, 10000); }
 function pressEnd(){ clearTimeout(pressTimer); }
 ['pointerdown'].forEach(ev=>$('tsEmblem').addEventListener(ev,pressStart));
@@ -1874,6 +1879,7 @@ const TITLES = [
   {id:'e30',  en:'Calamity Ender',         jp:'災厄を終わらせし者', need:'EXTRA ×30', ok:s=>s.extra>=30},
   {id:'d5',   en:'Blitz Conqueror',        jp:'電撃の征服者',       need:'5 IN A DAY',ok:s=>s.maxDay>=5},
   {id:'hell', en:'Fallen Awakener',        jp:'堕ちた覚醒者',       need:'ENTER HELL',ok:s=>s.hellUnlocked},
+  {id:'retro',en:'Pixel Wanderer',         jp:'ドットの旅人',       need:'ENTER RETRO',ok:s=>s.retroUnlocked},
 ];
 const titlesOverlay=$('titlesOverlay'), titlesList=$('titlesList'), statusTitle=$('statusTitle');
 let selectedTitle=''; try{ selectedTitle = localStorage.getItem('selected_title') || ''; }catch(e){}
@@ -1882,12 +1888,13 @@ function titleStats(){
   const byDay={}; done.forEach(m=>{ byDay[m.date]=(byDay[m.date]||0)+1; });
   const p=progress();
   let hellUnlocked=false; try{ hellUnlocked = localStorage.getItem('hell_unlocked')==='1'; }catch(e){}
+  let retroUnlocked=false; try{ retroUnlocked = localStorage.getItem('retro_unlocked')==='1'; }catch(e){}
   return {
     work: done.filter(m=>m.category==='work').length,
     priv: done.filter(m=>m.category==='private').length,
     extra: done.filter(m=>m.xp===100).length,
     maxDay: Object.values(byDay).reduce((a,b)=>Math.max(a,b),0),
-    level: p.level, rank: rankFor(p.level), streak: computeStreak(), hellUnlocked,
+    level: p.level, rank: rankFor(p.level), streak: computeStreak(), hellUnlocked, retroUnlocked,
   };
 }
 function renderTitles(){
