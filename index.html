@@ -298,11 +298,12 @@
   .together-note.show{display:block}
 
   .mlist{list-style:none;margin:0;padding:0}
-  .mlist li{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-bottom:6px;
+  .mlist li{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;margin-bottom:6px;
     border:1px solid rgba(var(--c),.18);border-radius:4px;background:rgba(9,17,33,.4)}
   .mlist li.done{opacity:.5}
   .chk{width:22px;height:22px;flex:0 0 22px;border:2px solid var(--cyan);border-radius:4px;
-    display:grid;place-items:center;cursor:pointer;color:transparent;font-size:14px;transition:.15s}
+    display:grid;place-items:center;cursor:pointer;color:transparent;font-size:14px;transition:.15s;margin-top:1px}
+  .mlist li .editbtn,.mlist li .copybtn,.mlist li .del{margin-top:2px}
   .mlist li.done .chk{background:var(--cyan);color:#04060c;box-shadow:0 0 12px var(--glow)}
   .m-body{flex:1;min-width:0}
   .m-title{font-size:15px;font-weight:600;line-height:1.15}
