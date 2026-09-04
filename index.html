@@ -308,6 +308,20 @@
   .m-title{font-size:15px;font-weight:600;line-height:1.15}
   .mlist li.done .m-title{text-decoration:line-through}
   .m-meta{font-family:'Orbitron';font-size:9px;letter-spacing:.1em;margin-top:2px}
+  .subprog{color:var(--muted)}
+  .sublist{list-style:none;margin:6px 0 0;padding:0}
+  .sublist li{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer}
+  .sublist .schk{width:16px;height:16px;flex:0 0 16px;border:1.5px solid var(--cyan);border-radius:3px;
+    display:grid;place-items:center;color:transparent;font-size:11px}
+  .sublist li.sdone .schk{background:var(--cyan);color:#04060c}
+  .sublist .stext{font-size:14px;color:var(--text)}
+  .sublist li.sdone .stext{text-decoration:line-through;color:var(--muted)}
+  .sub-editlist{list-style:none;margin:0 0 10px;padding:0}
+  .sub-editlist li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;margin-bottom:5px;
+    border:1px solid rgba(var(--c),.2);border-radius:4px;background:rgba(9,17,33,.4)}
+  .sub-editlist .stext{font-size:14px;color:var(--text)}
+  .sub-editlist .subdel{color:var(--muted);font-size:15px;background:none;border:none;cursor:pointer}
+  .sub-editlist .subdel:hover{color:var(--danger)}
   .tag{padding:1px 6px;border-radius:3px;margin-right:6px}
   .tag.work{color:#04060c;background:var(--work)} .tag.private{color:#0e0420;background:var(--private)}
   .xpv{color:var(--gold)}
@@ -713,6 +727,12 @@
         <button data-v="50">HARD · 50</button>
         <button data-v="100">EXTRA · 100</button>
       </div>
+      <div class="sect-label" style="margin:6px 0 8px">SUB-MISSIONS</div>
+      <div class="quick-add">
+        <input type="text" id="subInput" placeholder="Sub-mission (optional)..." maxlength="60" autocomplete="off">
+        <button id="subAddBtn" aria-label="add sub">＋</button>
+      </div>
+      <ul class="sub-editlist" id="subEditList"></ul>
       <button class="addbtn" id="addBtn">ACCEPT MISSION</button>
       <button class="addbtn cancel" id="cancelEditBtn" style="display:none">CANCEL</button>
     </div>
@@ -837,7 +857,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 24;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 25;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -850,6 +870,7 @@ let clip = null;           // コピーしたタスク {title,category,xp}
 let clipFrom = null;       // コピー元の日付（同じ日には貼り付けを出さない）
 let editingId = null;      // 編集中のミッションID（nullなら新規追加）
 let modalSimple = false;   // TODAYの簡易表示か（rest/追加を隠す）
+let editSubs = [];         // フォームで編集中のサブミッション [{t,d}]
 
 /* =========================================================
    効果音（Web Audioで合成・外部ファイル不要）
@@ -1202,38 +1223,61 @@ function toggleRest(who){
 function renderMissionList(){
   const ms = missionsOn(selDate);
   if(!ms.length){ mList.innerHTML = '<div class="empty">NO ACTIVE MISSIONS</div>'; return; }
-  mList.innerHTML = ms.map(m=>`
+  mList.innerHTML = ms.map(m=>{
+    const subs = m.subs||[];
+    const subDone = subs.filter(s=>s.d).length;
+    const subHtml = subs.length ? `<ul class="sublist">${subs.map((sb,i)=>
+      `<li class="${sb.d?'sdone':''}" data-si="${i}"><span class="schk">✓</span><span class="stext">${escapeHtml(sb.t)}</span></li>`).join('')}</ul>` : '';
+    return `
     <li class="${m.done?'done':''}" data-id="${m.id}">
       <div class="chk">✓</div>
       <div class="m-body">
         <div class="m-title">${escapeHtml(m.title)}</div>
-        <div class="m-meta"><span class="tag ${m.category}">${m.category.toUpperCase()}</span><span class="xpv">+${m.xp} EXP</span></div>
+        <div class="m-meta"><span class="tag ${m.category}">${m.category.toUpperCase()}</span><span class="xpv">+${m.xp} EXP</span>${subs.length?`<span class="subprog"> · SUB ${subDone}/${subs.length}</span>`:''}</div>
+        ${subHtml}
       </div>
       <button class="editbtn" title="Edit">✎</button>
       <button class="copybtn" title="Copy">⧉</button>
       <button class="del">✕</button>
-    </li>`).join('');
-  mList.querySelectorAll('li').forEach(li=>{
+    </li>`;}).join('');
+  mList.querySelectorAll('li[data-id]').forEach(li=>{
     const id = li.dataset.id;
     li.querySelector('.chk').onclick = ()=>toggleDone(id);
     li.querySelector('.editbtn').onclick = ()=>startEdit(id);
     li.querySelector('.copybtn').onclick = ()=>copyMission(id);
     li.querySelector('.del').onclick = ()=>deleteMission(id);
+    li.querySelectorAll('.sublist li').forEach(sli=>sli.onclick=e=>{ e.stopPropagation(); toggleSub(id, +sli.dataset.si); });
   });
 }
 
 function addMission(){
   const t = mTitle.value.trim();
   if(!t){ toast('Enter a mission name'); mTitle.focus(); return; }
+  const subs = editSubs.map(s=>({t:s.t, d:!!s.d}));
   if(editingId){                                   // 編集を保存
     const m = state.missions.find(x=>x.id===editingId);
-    if(m){ m.title=t; m.category=newCat; m.xp=newXp; if(editDate.value) m.date=editDate.value; }
+    if(m){ m.title=t; m.category=newCat; m.xp=newXp; if(editDate.value) m.date=editDate.value;
+      m.subs = subs;
+      if(subs.length){ awardDone(m, subs.every(s=>s.d)); }   // サブありなら達成=全サブ済
+    }
     save(); endEdit(); renderMissionList(); render(); toast('Mission updated');
     return;
   }
   state.missions.push({ id:'m'+Date.now()+Math.random().toString(36).slice(2,6),
-    title:t, category:newCat, date:selDate, xp:newXp, done:false });
-  save(); mTitle.value=''; renderMissionList(); render(); mTitle.focus();
+    title:t, category:newCat, date:selDate, xp:newXp, done:false, subs });
+  save(); mTitle.value=''; editSubs=[]; renderSubEditList(); renderMissionList(); render(); mTitle.focus();
+}
+/* --- フォームのサブミッション管理 --- */
+function renderSubEditList(){
+  subEditList.innerHTML = editSubs.map((s,i)=>
+    `<li data-i="${i}"><span class="stext">${escapeHtml(s.t)}</span><button class="subdel" aria-label="remove">✕</button></li>`).join('');
+  subEditList.querySelectorAll('li').forEach(li=>{
+    li.querySelector('.subdel').onclick=()=>{ editSubs.splice(+li.dataset.i,1); renderSubEditList(); };
+  });
+}
+function addSubToForm(){
+  const v = subInput.value.trim(); if(!v) return;
+  editSubs.push({t:v, d:false}); subInput.value=''; renderSubEditList(); subInput.focus();
 }
 function quickAdd(){
   const t = qaTitle.value.trim();
@@ -1248,6 +1292,7 @@ function startEdit(id){
   addSection.style.display = '';                    // TODAY簡易表示でも編集フォームを出す
   mTitle.value = m.title; newCat = m.category; newXp = m.xp;
   editDateRow.style.display = ''; editDate.value = m.date;   // 日付変更フィールド
+  editSubs = (m.subs||[]).map(s=>({t:s.t, d:!!s.d})); renderSubEditList();   // サブを読み込み
   document.getElementById('pickCat').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.v===m.category));
   document.getElementById('pickDiff').querySelectorAll('button').forEach(b=>b.classList.toggle('on', +b.dataset.v===m.xp));
   addLabel.textContent = 'EDIT MISSION';
@@ -1263,16 +1308,33 @@ function endEdit(){
   cancelEditBtn.style.display = 'none';
   editDateRow.style.display = 'none';
   mTitle.value = '';
+  editSubs = []; renderSubEditList();               // サブ入力をクリア
   if(modalSimple) addSection.style.display = 'none';  // 簡易表示なら閉じ直す
+}
+function awardDone(m, done){                       // 親の達成状態を設定（XPと連動）
+  m.done = done;
+  if(done){ m.earned = Math.round(m.xp * streakMult()); } else { delete m.earned; }
 }
 function toggleDone(id){
   const m = state.missions.find(x=>x.id===id); if(!m) return;
-  m.done = !m.done;
-  if(m.done){ m.earned = Math.round(m.xp * streakMult()); } else { delete m.earned; }
+  const nd = !m.done;
+  awardDone(m, nd);
+  if(m.subs && m.subs.length) m.subs.forEach(s=>s.d=nd);   // 親チェックで全サブ一括ON/OFF
   save();
   renderMissionList(); renderStatus(true);
   if(viewMode==='month') renderMonth(); else renderWeek();
   if(m.done){ toast(`Mission cleared  ·  +${m.earned} EXP`); SFX.complete(); checkNewTitles(); }
+}
+function toggleSub(id, i){
+  const m = state.missions.find(x=>x.id===id); if(!m || !m.subs || !m.subs[i]) return;
+  m.subs[i].d = !m.subs[i].d;
+  const wasDone = m.done;
+  const allDone = m.subs.every(s=>s.d);
+  awardDone(m, allDone);                                    // 全サブ達成で親も達成
+  save();
+  renderMissionList(); renderStatus(allDone && !wasDone);
+  if(viewMode==='month') renderMonth(); else renderWeek();
+  if(allDone && !wasDone){ toast(`Mission cleared  ·  +${m.earned} EXP`); SFX.complete(); checkNewTitles(); }
 }
 function deleteMission(id){
   state.missions = state.missions.filter(x=>x.id!==id);
@@ -1355,7 +1417,7 @@ function pasteBatch(){
   if(!sel.size){ toast('Select days first'); return; }
   const n=sel.size;
   sel.forEach(ds=>state.missions.push({ id:newId(),
-    title:clip.title, category:clip.category, date:ds, xp:clip.xp, done:false }));
+    title:clip.title, category:clip.category, date:ds, xp:clip.xp, done:false, subs:(clip.subs||[]).map(s=>({t:s.t,d:false})) }));
   save(); sel.clear(); updateBatch();
   if(viewMode==='month') renderMonth(); else renderWeek();
   toast(`"${clip.title}" added to ${n} day${n>1?'s':''}`);
@@ -1365,7 +1427,7 @@ function pasteBatch(){
 function newId(){ return 'm'+Date.now()+Math.random().toString(36).slice(2,6); }
 function copyMission(id){
   const m=state.missions.find(x=>x.id===id); if(!m) return;
-  clip={ title:m.title, category:m.category, xp:m.xp };
+  clip={ title:m.title, category:m.category, xp:m.xp, subs:(m.subs||[]).map(s=>({t:s.t,d:false})) };
   clipFrom = m.date;                 // コピー元の日を記録
   updateBatch(); showPasteStrip();
   toast('Copied: '+m.title);
@@ -1378,7 +1440,7 @@ function showPasteStrip(){
 }
 function pasteHere(){
   if(!clip || !selDate) return;
-  state.missions.push({ id:newId(), title:clip.title, category:clip.category, date:selDate, xp:clip.xp, done:false });
+  state.missions.push({ id:newId(), title:clip.title, category:clip.category, date:selDate, xp:clip.xp, done:false, subs:(clip.subs||[]).map(s=>({t:s.t,d:false})) });
   save(); renderMissionList(); render(); toast('Pasted: '+clip.title);
 }
 
@@ -1388,6 +1450,7 @@ const lvNum=$('lvNum'), xpInto=$('xpInto'), xpNeed=$('xpNeed'), xpFill=$('xpFill
   calBody=$('calBody'), overlay=$('overlay'), mDate=$('mDate'), mSub=$('mSub'), mList=$('mList'),
   mTitle=$('mTitle'), restMine=$('restMine'), restPartner=$('restPartner'), togetherNote=$('togetherNote'),
   addLabel=$('addLabel'), addBtn=$('addBtn'), cancelEditBtn=$('cancelEditBtn'),
+  subInput=$('subInput'), subEditList=$('subEditList'),
   restSection=$('restSection'), addSection=$('addSection'),
   toastEl=$('toast'), levelup=$('levelup'), luLevel=$('luLevel'),
   rankup=$('rankup'), ruRank=$('ruRank'), subStats=$('subStats'),
@@ -1407,6 +1470,8 @@ restPartner.onclick=()=>toggleRest('partner');
 $('addBtn').onclick=addMission;
 cancelEditBtn.onclick=endEdit;
 $('qaBtn').onclick=quickAdd;
+$('subAddBtn').onclick=addSubToForm;
+subInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addSubToForm(); } });
 qaTitle.addEventListener('keydown',e=>{ if(e.key==='Enter') quickAdd(); });
 $('batchBtn').onclick=toggleBatch;
 $('bMine').onclick=()=>applyRestBatch('mine');
@@ -1606,6 +1671,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v4.1', title:'SUB-MISSIONS', notes:[
+    'ミッションにサブミッション（チェックリスト）を追加',
+    'サブを全部チェックすると親ミッションが自動達成',
+  ]},
   { v:'v4.0', title:'OPTIMIZE', notes:[
     '自動バックアップの書き込みを間引き（負荷軽減）',
     '更新チェックを3時間に1回へ（通信・電池を節約）',
