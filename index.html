@@ -568,27 +568,30 @@
 
   .footnote{text-align:center;font-family:'Orbitron';font-size:9px;color:#2f4468;letter-spacing:.2em;margin-top:22px}
   @media(max-width:640px){
-    .wrap{padding:12px 10px 60px}
-    /* ヘッダー（プレイヤーステータス）をコンパクトに */
-    header.status{padding:10px 12px 12px;margin-bottom:8px}
-    .sys-tag{margin-bottom:6px}
-    .statgrid{gap:12px}
-    .lvblock{gap:8px}
-    .lv-num{font-size:40px}
-    .rank{width:40px;height:40px;font-size:18px}
+    .wrap{padding:10px 10px 24px}
+    /* ヘッダー（プレイヤーステータス）を大幅コンパクトに。LV/RANK/EXPバーは見やすさ維持、他は小さく */
+    header.status{padding:8px 12px 8px;margin-bottom:6px}
+    .sys-tag{font-size:8px;letter-spacing:.14em;margin-bottom:4px}
+    .statgrid{gap:12px;align-items:center}
+    .lvblock{gap:6px}
+    .lv-label{font-size:9px;padding-bottom:2px}
+    .lv-num{font-size:34px}
+    .rank{width:34px;height:34px;font-size:15px}
     .xpbar{height:10px}
-    .xprow{font-size:11px;margin-bottom:4px;padding-right:24px}
-    .cleared{font-size:10px;margin-top:5px}
-    .substats{font-size:10px;margin-top:4px}
-    .controls{gap:8px;margin:10px 0}
-    /* カレンダーを大きく */
-    .cal{padding:8px}
+    .xprow{font-size:9px;margin-bottom:3px;padding-right:20px}
+    .cleared{font-size:9px;margin-top:3px}
+    .substats{font-size:9px;margin-top:3px}
+    .controls{gap:8px;margin:8px 0}
+    .footnote{margin-top:10px}
+    /* カレンダー：6週が収まるマス高 */
+    .cal{padding:6px}
     .period{font-size:18px}
     .nav,.toggle button,.today{padding:7px 9px;font-size:12px}
     .nav{width:34px}
     .grid,.weekgrid,.weekhead{gap:4px}
-    .cell{min-height:84px;padding:5px 6px}
-    .dnum{font-size:13px}
+    .weekhead div{padding:2px 0}
+    .cell{min-height:66px;padding:4px 5px}
+    .dnum{font-size:12px}
     /* WEEK：1日ずつ縦のアジェンダ表示 */
     .weekgrid{grid-template-columns:1fr;gap:8px}
     .wcol{min-height:auto;padding:10px 12px}
@@ -605,9 +608,9 @@
     body.batch-active .wrap{padding-bottom:120px}
   }
   @media(max-width:400px){
-    .lv-num{font-size:36px}
-    .rank{width:38px;height:38px;font-size:17px}
-    .cell{min-height:74px}
+    .lv-num{font-size:30px}
+    .rank{width:32px;height:32px;font-size:14px}
+    .cell{min-height:60px}
     .hol{font-size:8px}
     .rest-tags{gap:2px}
     .rtag{font-size:7px;padding:1px 3px}
@@ -870,7 +873,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 26;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 27;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1684,6 +1687,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v4.3', title:'COMPACT HEADER', notes:[
+    'スマホのステータス表示を大幅圧縮（LV/RANK/EXPバーは維持）',
+    'カレンダーの全6週がスクロールせず収まるよう調整',
+  ]},
   { v:'v4.2', title:'BIGGER CALENDAR', notes:[
     'スマホのヘッダーをコンパクトにしてカレンダーを拡大',
     'ステータスのNEXT RANKを経験値のみ表示に',
