@@ -569,14 +569,26 @@
   .footnote{text-align:center;font-family:'Orbitron';font-size:9px;color:#2f4468;letter-spacing:.2em;margin-top:22px}
   @media(max-width:640px){
     .wrap{padding:12px 10px 60px}
-    .lv-num{font-size:54px}
-    .rank{width:48px;height:48px;font-size:22px}
+    /* ヘッダー（プレイヤーステータス）をコンパクトに */
+    header.status{padding:10px 12px 12px;margin-bottom:8px}
+    .sys-tag{margin-bottom:6px}
+    .statgrid{gap:12px}
+    .lvblock{gap:8px}
+    .lv-num{font-size:40px}
+    .rank{width:40px;height:40px;font-size:18px}
+    .xpbar{height:10px}
+    .xprow{font-size:11px;margin-bottom:4px;padding-right:24px}
+    .cleared{font-size:10px;margin-top:5px}
+    .substats{font-size:10px;margin-top:4px}
+    .controls{gap:8px;margin:10px 0}
+    /* カレンダーを大きく */
+    .cal{padding:8px}
     .period{font-size:18px}
     .nav,.toggle button,.today{padding:7px 9px;font-size:12px}
     .nav{width:34px}
     .grid,.weekgrid,.weekhead{gap:4px}
-    .cell{min-height:64px;padding:4px 5px}
-    .dnum{font-size:12px}
+    .cell{min-height:84px;padding:5px 6px}
+    .dnum{font-size:13px}
     /* WEEK：1日ずつ縦のアジェンダ表示 */
     .weekgrid{grid-template-columns:1fr;gap:8px}
     .wcol{min-height:auto;padding:10px 12px}
@@ -593,9 +605,9 @@
     body.batch-active .wrap{padding-bottom:120px}
   }
   @media(max-width:400px){
-    .lv-num{font-size:46px}
-    .rank{width:42px;height:42px;font-size:20px}
-    .cell{min-height:56px}
+    .lv-num{font-size:36px}
+    .rank{width:38px;height:38px;font-size:17px}
+    .cell{min-height:74px}
     .hol{font-size:8px}
     .rest-tags{gap:2px}
     .rtag{font-size:7px;padding:1px 3px}
@@ -858,7 +870,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 25;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 26;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1068,10 +1080,10 @@ function totalXpForLevel(L){ let s=0; for(let i=1;i<L;i++) s+=needFor(i); return
 function doneXpTotal(){ return state.missions.filter(m=>m.done).reduce((a,m)=>a+m.xp,0); }
 function nextRankText(level){
   const idx=RANK_ORDER.indexOf(rankFor(level));
-  if(idx>=RANK_ORDER.length-1) return 'MAX (S)';
+  if(idx>=RANK_ORDER.length-1) return 'MAX';
   const nextR=RANK_ORDER[idx+1];
   const need = totalXpForLevel(RANK_MIN[nextR]) - doneXpTotal();
-  return nextR+' in '+Math.max(0,need)+' XP';
+  return Math.max(0,need)+' XP';
 }
 function todayProgress(){ const ms=missionsOn(today()); return { done: ms.filter(m=>m.done).length, total: ms.length }; }
 /* ストリーク：ミッションを未クリアのまま翌日に持ち越さなければ継続（空の日・休みは途切れない） */
@@ -1672,6 +1684,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v4.2', title:'BIGGER CALENDAR', notes:[
+    'スマホのヘッダーをコンパクトにしてカレンダーを拡大',
+    'ステータスのNEXT RANKを経験値のみ表示に',
+  ]},
   { v:'v4.1', title:'SUB-MISSIONS', notes:[
     'ミッションにサブミッション（チェックリスト）を追加',
     'サブを全部チェックすると親ミッションが自動達成',
