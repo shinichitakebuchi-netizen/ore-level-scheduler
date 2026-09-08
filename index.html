@@ -283,6 +283,11 @@
     text-shadow:0 0 12px var(--glow);letter-spacing:.06em}
   .modal .sub{font-family:'Orbitron';font-size:10px;color:var(--muted);letter-spacing:.2em;margin-bottom:14px}
   .modal .sub .hn{color:var(--sun)}
+  .rest-info{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .rest-info:empty{display:none}
+  .rest-info .rtag{font-size:10px;padding:3px 8px}
+  .to-full{margin-top:2px;background:transparent;color:var(--cyan-hi);border:1px solid rgba(var(--c),.5);box-shadow:none}
+  .to-full:hover{filter:none;background:rgba(var(--c),.14)}
   .close{position:absolute;top:12px;right:14px;font-family:'Orbitron';font-size:20px;color:var(--muted);
     width:30px;height:30px;line-height:26px;text-align:center}
   .close:hover{color:var(--cyan-hi)}
@@ -704,6 +709,7 @@
     <button class="close" id="closeBtn">✕</button>
     <h2 id="mDate">—</h2>
     <div class="sub" id="mSub">MISSION LOG</div>
+    <div class="rest-info" id="restInfo"></div>
 
     <div id="restSection">
     <div class="sect-label">REST DAY</div>
@@ -716,10 +722,11 @@
 
     <div class="sect-label">MISSIONS</div>
     <div class="quick-add" id="quickAdd">
-      <input type="text" id="qaTitle" placeholder="Quick add for today..." maxlength="60" autocomplete="off">
+      <input type="text" id="qaTitle" placeholder="Quick add..." maxlength="60" autocomplete="off">
       <button id="qaBtn" aria-label="add">＋</button>
     </div>
     <ul class="mlist" id="mList"></ul>
+    <button class="addbtn to-full" id="toFullBtn">＋ ADD / EDIT ・ REST</button>
     <div id="addSection">
     <div class="pastestrip" id="pasteStrip">
       <div class="pinfo" id="pasteInfo"></div>
@@ -873,7 +880,7 @@
    単一ファイル / localStorage保存 / GitHub Pages対応
    ========================================================= */
 const KEY = 'the_system_scheduler_v1';
-const APP_VERSION = 27;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
+const APP_VERSION = 28;   // ← 新版をアップするたびに数字を+1する（更新お知らせ用）
 
 let state = { missions: [], rest: {} };
 let viewMode = 'month';
@@ -1204,21 +1211,40 @@ function renderWeek(){
 }
 
 /* ---- モーダル ---- */
+function setModalMode(simpleMode){
+  modalSimple = simpleMode;
+  restSection.style.display = simpleMode ? 'none' : '';
+  addSection.style.display  = simpleMode ? 'none' : '';
+  quickAddEl.style.display  = simpleMode ? 'flex' : 'none';
+  restInfo.style.display    = simpleMode ? '' : 'none';
+  toFullBtn.style.display   = simpleMode ? '' : 'none';
+  if(simpleMode) renderRestInfo();
+}
+function renderRestInfo(){   // 簡易表示：休み状況を読み取り専用バッジで表示
+  const rst = restOn(selDate);
+  let html='';
+  if(rst.mine && rst.partner) html='<span class="rtag together">★ OFF TOGETHER</span>';
+  else { if(rst.mine) html+='<span class="rtag mine">MY REST</span>'; if(rst.partner) html+='<span class="rtag partner">PARTNER REST</span>'; }
+  restInfo.innerHTML = html;
+}
+function expandToFull(){   // 簡易→詳細（休みトグル＋追加フォーム）へ
+  setModalMode(false);
+  renderRestButtons();
+  showPasteStrip();
+  addSection.scrollIntoView({behavior:'smooth', block:'nearest'});
+  mTitle.focus();
+}
 function openDay(ds, simple){
   selDate = ds;
-  modalSimple = !!simple;
-  endEdit();                       // 編集状態をリセット
+  resetEditFields();               // 編集状態のみリセット（レイアウトは後で設定）
   const d = new Date(ds+'T00:00:00');
   mDate.textContent = `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
   const hn = holidayName(ds);
   mSub.innerHTML = WD[d.getDay()] + (hn? ` · <span class="hn">${escapeHtml(hn)}</span>`:'') + ' · MISSION LOG';
-  restSection.style.display = simple ? 'none' : '';
-  addSection.style.display  = simple ? 'none' : '';
-  quickAddEl.style.display    = simple ? 'flex' : 'none';   // TODAY簡易表示ではクイック追加を出す
   renderRestButtons();
   renderMissionList();
   showPasteStrip();
-  mTitle.value='';
+  setModalMode(!!simple);          // 簡易/詳細のレイアウトを設定
   overlay.classList.add('show');
 }
 function closeModal(){ overlay.classList.remove('show'); selDate=null; }
@@ -1305,7 +1331,8 @@ function quickAdd(){
 function startEdit(id){
   const m = state.missions.find(x=>x.id===id); if(!m) return;
   editingId = id;
-  addSection.style.display = '';                    // TODAY簡易表示でも編集フォームを出す
+  addSection.style.display = '';                    // 編集フォームを表示
+  quickAddEl.style.display='none'; toFullBtn.style.display='none'; restInfo.style.display='none';
   mTitle.value = m.title; newCat = m.category; newXp = m.xp;
   editDateRow.style.display = ''; editDate.value = m.date;   // 日付変更フィールド
   editSubs = (m.subs||[]).map(s=>({t:s.t, d:!!s.d})); renderSubEditList();   // サブを読み込み
@@ -1317,16 +1344,16 @@ function startEdit(id){
   mTitle.focus();
   addSection.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
-function endEdit(){
+function resetEditFields(){
   editingId = null;
   addLabel.textContent = 'NEW MISSION';
   addBtn.textContent = 'ACCEPT MISSION';
   cancelEditBtn.style.display = 'none';
   editDateRow.style.display = 'none';
   mTitle.value = '';
-  editSubs = []; renderSubEditList();               // サブ入力をクリア
-  if(modalSimple) addSection.style.display = 'none';  // 簡易表示なら閉じ直す
+  editSubs = []; renderSubEditList();
 }
+function endEdit(){ resetEditFields(); setModalMode(modalSimple); }   // 編集終了→元のレイアウトへ
 function awardDone(m, done){                       // 親の達成状態を設定（XPと連動）
   m.done = done;
   if(done){ m.earned = Math.round(m.xp * streakMult()); } else { delete m.earned; }
@@ -1395,7 +1422,7 @@ function onCell(ds){
     if(sel.has(ds)) sel.delete(ds); else sel.add(ds);
     updateBatch();
     if(viewMode==='month') renderMonth(); else renderWeek();
-  } else openDay(ds);
+  } else openDay(ds, true);   // 日付タップは簡易表示（その日のタスク＋休みが分かる）
 }
 
 /* ---- 複数選択（一括）モード ---- */
@@ -1466,7 +1493,7 @@ const lvNum=$('lvNum'), xpInto=$('xpInto'), xpNeed=$('xpNeed'), xpFill=$('xpFill
   calBody=$('calBody'), overlay=$('overlay'), mDate=$('mDate'), mSub=$('mSub'), mList=$('mList'),
   mTitle=$('mTitle'), restMine=$('restMine'), restPartner=$('restPartner'), togetherNote=$('togetherNote'),
   addLabel=$('addLabel'), addBtn=$('addBtn'), cancelEditBtn=$('cancelEditBtn'),
-  subInput=$('subInput'), subEditList=$('subEditList'),
+  subInput=$('subInput'), subEditList=$('subEditList'), restInfo=$('restInfo'), toFullBtn=$('toFullBtn'),
   restSection=$('restSection'), addSection=$('addSection'),
   toastEl=$('toast'), levelup=$('levelup'), luLevel=$('luLevel'),
   rankup=$('rankup'), ruRank=$('ruRank'), subStats=$('subStats'),
@@ -1487,6 +1514,7 @@ $('addBtn').onclick=addMission;
 cancelEditBtn.onclick=endEdit;
 $('qaBtn').onclick=quickAdd;
 $('subAddBtn').onclick=addSubToForm;
+$('toFullBtn').onclick=expandToFull;
 subInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addSubToForm(); } });
 qaTitle.addEventListener('keydown',e=>{ if(e.key==='Enter') quickAdd(); });
 $('batchBtn').onclick=toggleBatch;
@@ -1687,6 +1715,10 @@ $('tsVer').textContent = 'v'+APP_VERSION;
 /* --- SYSTEM NOTICE（パッチノート） ---
    新バージョンを出すときは、先頭にエントリを1つ追加して APP_VERSION も合わせる */
 const CHANGELOG = [
+  { v:'v4.4', title:'DAY VIEW', notes:[
+    '日付タップで、その日のタスクと休みが分かる簡易画面を表示',
+    '「ADD / EDIT・REST」から詳細（追加・編集・休み設定）へ移動',
+  ]},
   { v:'v4.3', title:'COMPACT HEADER', notes:[
     'スマホのステータス表示を大幅圧縮（LV/RANK/EXPバーは維持）',
     'カレンダーの全6週がスクロールせず収まるよう調整',
